@@ -1,13 +1,11 @@
-from Data.Database import Database  # Adjust this import based on your actual file structure
+from Logic.Employee import Employee
+# from Logic.Login import import Login
+# from Logic.Project import Project
+# from Logic.TimeEntry import TimeEntry
 
-def main():
-    print("📥 Fetching active employees...")
-    try:
-        employees = Database.get_active_employees()
-        for emp in employees:
-            print(emp)
-    except Exception as e:
-        print("❌ Error fetching employees:", e)
-
-if __name__ == "__main__":
-    main()
+#------------
+# GET and print active employees
+print("\n✅ All Active Employees:")
+for emp in Employee.get_all_active_employees():
+    print(emp)
+#------------
