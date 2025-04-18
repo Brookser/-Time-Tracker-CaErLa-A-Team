@@ -70,3 +70,31 @@ class Database:
         cursor = cls.get_cursor()
         cursor.execute("SELECT * FROM department")
         return cursor.fetchall()
+
+    # ======================
+    # 🔹 Login
+    # ======================
+    @classmethod
+    def get_login_by_empid(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT * FROM login_table WHERE EMPID = ?", (empid,))
+        return cursor.fetchone()
+
+    @classmethod
+    def add_login(cls, loginid, empid, password, last_reset=None, force_reset=0):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO login_table (LOGINID, EMPID, PASSWORD, LAST_RESET, FORCE_RESET)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (loginid, empid, password, last_reset, force_reset))
+        cls.commit()
+
+    @classmethod
+    def update_password(cls, empid, new_password, last_reset, force_reset=0):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE login_table
+            SET PASSWORD = ?, LAST_RESET = ?, FORCE_RESET = ?
+            WHERE EMPID = ?
+        ''', (new_password, last_reset, force_reset, empid))
+        cls.commit()
