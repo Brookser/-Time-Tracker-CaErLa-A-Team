@@ -26,3 +26,47 @@ class Database:
     @classmethod
     def commit(cls):
         cls.__connection.commit()
+
+
+    # ======================
+    # 🔹 Employee Queries
+    # ======================
+
+    @classmethod
+    def add_employee(cls, empid, first_name, last_name, dptid, email=None, mgr_empid=None, active=1):
+        cursor = cls.get_cursor()
+        query = '''
+            INSERT INTO employee_table
+            (EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, MGR_EMPID, EMP_ACTIVE)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        '''
+        cursor.execute(query, (empid, first_name, last_name, dptid, email, mgr_empid, active))
+        cls.commit()
+
+    @classmethod
+    def get_active_employees(cls):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT * FROM employee_table WHERE EMP_ACTIVE = 1")
+        return cursor.fetchall()
+
+
+    # ======================
+    # 🔹 Project Queries
+    # ======================
+
+    @classmethod
+    def get_all_projects(cls):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT * FROM projects")
+        return cursor.fetchall()
+
+
+    # ======================
+    # 🔹 Department Queries
+    # ======================
+
+    @classmethod
+    def get_departments(cls):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT * FROM department")
+        return cursor.fetchall()

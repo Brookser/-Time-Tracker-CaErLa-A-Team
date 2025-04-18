@@ -1,6 +1,5 @@
 from Data.Database import Database
 
-
 class Employee:
     def __init__(self, empid, first_name, last_name, dptid, email=None, mgr_empid=None, active=1):
         self.__empid = empid
@@ -40,7 +39,7 @@ class Employee:
     def is_active(self):
         return self.__active == 1
 
-    # Save employee to the database
+    # Save this employee to the database
     def save_to_database(self):
         Database.add_employee(
             empid=self.__empid,
@@ -55,6 +54,4 @@ class Employee:
     # Static method to fetch all active employees
     @staticmethod
     def get_all_active_employees():
-        cursor = Database.get_cursor()
-        cursor.execute("SELECT * FROM employee_table WHERE EMP_ACTIVE = 1")
-        return cursor.fetchall()
+        return Database.get_active_employees()
