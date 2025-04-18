@@ -55,4 +55,6 @@ class Employee:
     # Static method to fetch all active employees
     @staticmethod
     def get_all_active_employees():
-        return Database.get_active_employees()
+        cursor = Database.get_cursor()
+        cursor.execute("SELECT * FROM employee_table WHERE EMP_ACTIVE = 1")
+        return cursor.fetchall()
