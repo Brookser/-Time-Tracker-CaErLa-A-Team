@@ -1,43 +1,79 @@
 from Data.Database import Database
+from Logic.Login import Login
 
-def create_department():
-    print("🏗️ Creating department D001...")
-    Database.connect()
-    cursor = Database._Database__connection.cursor()
 
-    # Check if department already exists
-    cursor.execute("SELECT * FROM department WHERE DPTID = ?", ("D001",))
-    if cursor.fetchone():
-        print("✅ Department D001 already exists.")
-        return
+## UNCOMMENT EACH TEST TO RUN IT - EDIT DATA WHERE NEEDED
 
-    cursor.execute(
-        "INSERT INTO department (DPTID, DPT_NAME) VALUES (?, ?)",
-        ("D001", "Engineering")
+#--------------
+# DEPARTMENT
+#--------------
+# def create_department():
+#     print("🏗️ Creating department D001...")
+#     Database.connect()
+#     cursor = Database._Database__connection.cursor()
+#
+#     # Check if department already exists
+#     cursor.execute("SELECT * FROM department WHERE DPTID = ?", ("D001",))
+#     if cursor.fetchone():
+#         print("✅ Department D001 already exists.")
+#         return
+#
+#     cursor.execute(
+#         "INSERT INTO department (DPTID, DPT_NAME) VALUES (?, ?)",
+#         ("D001", "Engineering")
+#     )
+#     Database._Database__connection.commit()
+#     print("✅ Department D001 created.")
+#
+# def main():
+#     create_department()
+
+#--------------
+# EMPLOYEE
+#--------------
+# def create_employee():
+#     print("👤 Creating employee E001...")
+#     try:
+#         Database.add_employee(
+#             empid="E001",
+#             first_name="Casey",
+#             last_name="Hill",
+#             dptid="D001",
+#             email="casey.hill@example.com",
+#             mgr_empid=None,
+#             active=1
+#         )
+#         print("✅ Employee E001 created!")
+#     except Exception as e:
+#         print("❌ Failed to create employee:")
+#         print(e)
+#
+# def main():
+#     create_employee()
+
+
+#--------------
+# LOGIN
+#--------------
+
+def create_login():
+    print("🔐 Creating login for E001...")
+
+    login = Login(
+        loginid="login_casey",
+        empid="E001",  # needs to exist
+        password="secret123"
     )
-    Database._Database__connection.commit()
-    print("✅ Department D001 created.")
 
-def create_employee():
-    print("👤 Creating employee E001...")
     try:
-        Database.add_employee(
-            empid="E001",
-            first_name="Casey",
-            last_name="Hill",
-            dptid="D001",
-            email="casey.hill@example.com",
-            mgr_empid=None,
-            active=1
-        )
-        print("✅ Employee E001 created!")
+        login.save_to_database()
+        print("✅ Login created for EMPID E001.")
     except Exception as e:
-        print("❌ Failed to create employee:")
+        print("❌ Failed to create login:")
         print(e)
 
 def main():
-    create_department()
-    create_employee()
+    create_login()
 
 if __name__ == "__main__":
     main()
