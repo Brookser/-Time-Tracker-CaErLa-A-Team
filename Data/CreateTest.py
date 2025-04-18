@@ -11,13 +11,15 @@ def create_department():
         print("✅ Department D001 already exists.")
         return
 
-    # Insert new department
-    cursor.execute("INSERT INTO department (DPTID, DPT_NAME) VALUES (?, ?)", ("D001", "Engineering"))
+    cursor.execute(
+        "INSERT INTO department (DPTID, DPT_NAME) VALUES (?, ?)",
+        ("D001", "Engineering")
+    )
     Database._Database__connection.commit()
     print("✅ Department D001 created.")
 
 def create_employee():
-    print("👤 Creating sample employee...")
+    print("👤 Creating employee E001...")
     try:
         Database.add_employee(
             empid="E001",
