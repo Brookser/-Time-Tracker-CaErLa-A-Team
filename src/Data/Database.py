@@ -132,8 +132,29 @@ class Database:
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
 
+    # @classmethod
+    # def get_all_time_entries(cls):
+    #     cursor = cls.get_cursor()
+    #     cursor.execute("SELECT * FROM time")
+    #     return cursor.fetchall()
+
+    # same as above using names rather than ids
     @classmethod
     def get_all_time_entries(cls):
         cursor = cls.get_cursor()
-        cursor.execute("SELECT * FROM time")
+        cursor.execute('''
+            SELECT 
+                t.EMPID,
+                CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) AS employee_name,
+                t.PROJECTID,
+                p.PROJECT_NAME,
+                t.START_TIME,
+                t.STOP_TIME,
+                t.TOTAL_MINUTES,
+                t.NOTES
+            FROM time t
+            JOIN employee_table e ON t.EMPID = e.EMPID
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+        ''')
         return cursor.fetchall()
+

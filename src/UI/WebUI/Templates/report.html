@@ -8,21 +8,21 @@
     {% if entries %}
         <table>
             <tr>
-                <th>EMPID</th>
-                <th>PROJECTID</th>
-                <th>START</th>
-                <th>STOP</th>
-                <th>MINUTES</th>
-                <th>NOTES</th>
+                <th>Employee</th>
+                <th>Project</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Minutes</th>
+                <th>Notes</th>
             </tr>
             {% for e in entries %}
             <tr>
-                <td>{{ e[0] }}</td>
-                <td>{{ e[1] }}</td>
-                <td>{{ e[2] }}</td>
-                <td>{{ e[3] }}</td>
-                <td>{{ e[6] }}</td>
-                <td>{{ e[4] }}</td>
+                <td>{{ e[1] }}</td>  <!-- employee_name -->
+                <td>{{ e[3] }}</td>  <!-- project_name -->
+                <td>{{ e[4] }}</td>  <!-- start_time -->
+                <td>{{ e[5] }}</td>  <!-- stop_time -->
+                <td>{{ e[6] }}</td>  <!-- total_minutes -->
+                <td>{{ e[7] }}</td>  <!-- notes -->
             </tr>
             {% endfor %}
         </table>
