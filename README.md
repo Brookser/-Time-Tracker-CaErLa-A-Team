@@ -8,7 +8,6 @@ Built with Python, Flask, and MariaDB, the app delivers core time tracking featu
 ## 👥 Authors
 Abdullatif Al-Abdulrazzaq, Erika Brooks, and Casey Hill
 
----
 
 ## 📚 Table of Contents
 - [General Info](#general-info)
@@ -18,7 +17,6 @@ Abdullatif Al-Abdulrazzaq, Erika Brooks, and Casey Hill
 - [Known Bugs](#known-bugs)
 - [License](#license)
 
----
 
 ## 📖 General Info
 This application allows users to:
@@ -27,7 +25,6 @@ This application allows users to:
 - View and filter reports by project and date range
 - Track work across teams using a MariaDB backend and Flask frontend
 
----
 
 ## 🛠 Technologies Used
 
@@ -41,7 +38,6 @@ This application allows users to:
 - **JetBrains PyCharm** – for development
 - Organized using **Test-Driven Development (TDD)** principles
 
----
 
 ## 🧩 Setup & Installation
 
@@ -131,14 +127,14 @@ Next planned features:
 - In-browser start/stop time tracking
 - Project and employee CRUD functionality for admins and managers
 
----
+
 
 ## 🐛 Known Bugs
 
 - No error handling for failed DB connections (MVP build)
 - Time report filters not yet fully implemented
 
----
+
 
 ## 📄 License
 
