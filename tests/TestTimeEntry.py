@@ -1,4 +1,4 @@
-from Logic.TimeEntry import TimeEntry
+from src.Logic.TimeEntry import TimeEntry
 from datetime import datetime, timedelta
 
 def test_time_entry_all_fields():

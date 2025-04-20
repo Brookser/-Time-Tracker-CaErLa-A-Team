@@ -1,8 +1,5 @@
-from Data.Database import Database
-from Logic.Login import Login
-from Logic.Project import Project
 from datetime import datetime, timedelta
-from Logic.TimeEntry import TimeEntry
+from src.Logic.TimeEntry import TimeEntry
 
 
 # ***************
@@ -92,7 +89,7 @@ from Logic.TimeEntry import TimeEntry
 #
 #     project = Project(
 #         projectid="P001",
-#         name="Time Tracker DB Testing",
+#         name="Time Tracker DB tests",
 #         created_by="E001",
 #         prior_projectid=None
 #     )

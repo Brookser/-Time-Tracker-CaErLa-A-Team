@@ -1,4 +1,4 @@
-from Data.Database import Database
+from src.Data.Database import Database
 
 class Employee:
     def __init__(self, empid, first_name, last_name, dptid, email=None, mgr_empid=None, active=1):

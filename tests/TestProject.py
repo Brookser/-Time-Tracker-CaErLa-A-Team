@@ -1,4 +1,4 @@
-from Logic.Project import Project
+from src.Logic.Project import Project
 from datetime import datetime
 
 def test_project_creation_all_fields():

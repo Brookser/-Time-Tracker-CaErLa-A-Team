@@ -1,4 +1,4 @@
-from Logic.Employee import Employee
+from src.Logic.Employee import Employee
 # from Logic.Login import import Login
 # from Logic.Project import Project
 # from Logic.TimeEntry import TimeEntry

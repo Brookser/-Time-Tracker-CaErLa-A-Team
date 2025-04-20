@@ -1,4 +1,4 @@
-from Data.Database import Database
+from src.Data.Database import Database
 from datetime import datetime
 
 class Login:

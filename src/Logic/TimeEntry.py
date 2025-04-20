@@ -1,4 +1,4 @@
-from Data.Database import Database
+from src.Data.Database import Database
 
 class TimeEntry:
     def __init__(self, empid, projectid, start_time, stop_time=None, notes=None, manual_entry=0, total_minutes=None):

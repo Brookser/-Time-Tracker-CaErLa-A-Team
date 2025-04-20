@@ -1,4 +1,4 @@
-from Logic.Employee import Employee
+from src.Logic.Employee import Employee
 
 def test_employee_creation():
     emp = Employee(

@@ -1,7 +1,7 @@
 .idea/*
 __pycache__/*
-Data/__pycache__/*
-Logic/__pycache__/*
+src/Data/__pycache__/*
+src/Logic/__pycache__/*
 build/*
 dist/*
 *.spec
