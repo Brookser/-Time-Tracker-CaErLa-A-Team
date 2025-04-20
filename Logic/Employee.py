@@ -24,8 +24,11 @@ class Employee:
     def get_empid(self):
         return self.__empid
 
-    def get_full_name(self):
-        return f"{self.__first_name} {self.__last_name}"
+    def get_first_name(self):
+        return self.__first_name
+
+    def get_last_name(self):
+        return self.__last_name
 
     def get_dptid(self):
         return self.__dptid
