@@ -6,3 +6,11 @@ def test_department_creation():
     assert dept.get_name() == "Engineering"
     assert dept.get_manager() == "E001"
     assert dept.is_active() == 1
+
+
+def test_get_all_departments():
+    departments = Department.get_all_departments()
+
+    assert isinstance(departments, list)
+    if departments:
+        assert isinstance(departments[0], tuple)
