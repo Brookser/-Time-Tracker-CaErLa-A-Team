@@ -30,6 +30,8 @@ class TimeEntry:
 
     # Save time entry to DB
     def save_to_database(self):
+        print("🧪 Available methods on Database:")
+        print(dir(Database))
         self.calculate_total_minutes()
         Database.add_time_entry(
             empid=self.__empid,

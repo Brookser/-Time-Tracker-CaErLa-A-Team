@@ -90,7 +90,7 @@ class Database:
         return cursor.fetchall()
 
     # ======================
-    # 🔹 Login
+    # 🔹 Login Queries
     # ======================
     @classmethod
     def get_login_by_empid(cls, empid):
@@ -116,3 +116,19 @@ class Database:
             WHERE EMPID = ?
         ''', (new_password, last_reset, force_reset, empid))
         cls.commit()
+
+
+# ======================
+# 🔹 TimeEntry Queries
+# ======================
+
+    @classmethod
+    def add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO time 
+            (EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY, TOTAL_MINUTES)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
+        cls.commit()
+

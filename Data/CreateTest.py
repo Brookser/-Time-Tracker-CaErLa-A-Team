@@ -1,13 +1,17 @@
 from Data.Database import Database
 from Logic.Login import Login
 from Logic.Project import Project
+from datetime import datetime, timedelta
+from Logic.TimeEntry import TimeEntry
 
 
-## UNCOMMENT EACH TEST TO RUN IT - EDIT DATA WHERE NEEDED
+# ***************
+# UNCOMMENT EACH TEST TO RUN IT - EDIT DATA WHERE NEEDED
+# ***************
 
-#--------------
+# --------------
 # DEPARTMENT
-#--------------
+# --------------
 # def create_department():
 #     print("🏗️ Creating department D001...")
 #     Database.connect()
@@ -29,9 +33,9 @@ from Logic.Project import Project
 # def main():
 #     create_department()
 
-#--------------
+# --------------
 # EMPLOYEE
-#--------------
+# --------------
 # def create_employee():
 #     print("👤 Creating employee E001...")
 #     try:
@@ -53,9 +57,9 @@ from Logic.Project import Project
 #     create_employee()
 
 
-#--------------
+# --------------
 # LOGIN
-#--------------
+# --------------
 #
 # def create_login():
 #     print("🔐 Creating login for E001...")
@@ -78,33 +82,63 @@ from Logic.Project import Project
 #
 
 
-
-#--------------
+# --------------
 # PROJECT
-#--------------
+# --------------
 # from Logic.Project import Project
 
-def create_project():
-    print("📁 Creating sample project...")
+# def create_project():
+#     print("📁 Creating sample project...")
+#
+#     project = Project(
+#         projectid="P001",
+#         name="Time Tracker DB Testing",
+#         created_by="E001",
+#         prior_projectid=None
+#     )
+#
+#     try:
+#         project.save_to_database()
+#         print("✅ Project P001 created.")
+#     except Exception as e:
+#         print("❌ Failed to create project:")
+#         print(e)
+#
+# def main():
+#     create_project()
 
-    project = Project(
-        projectid="P001",
-        name="Time Tracker DB Testing",
-        created_by="E001",
-        prior_projectid=None
+
+# --------------
+# TIME ENTRY
+# --------------
+# from Logic.TimeEntry import TimeEntry
+
+def create_time_entry():
+    print("⏱️ Creating time entry...")
+
+    # Set up start/stop for demo (1 hour span)
+    start_time = datetime.now() - timedelta(hours=1)
+    stop_time = datetime.now()
+
+    entry = TimeEntry(
+        empid="E001",  # Must exist
+        projectid="P001",  # Must exist
+        start_time=start_time,
+        stop_time=stop_time,
+        notes="Worked on initial setup",
+        manual_entry=1
     )
 
     try:
-        project.save_to_database()
-        print("✅ Project P001 created.")
+        entry.save_to_database()
+        print("✅ Time entry saved.")
     except Exception as e:
-        print("❌ Failed to create project:")
+        print("❌ Failed to save time entry:")
         print(e)
 
+
 def main():
-    create_project()
-
-
+    create_time_entry()
 
 
 # ALWAYS LEAVE UNCOMMENTED
