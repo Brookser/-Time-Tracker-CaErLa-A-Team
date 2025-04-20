@@ -1,5 +1,6 @@
 from Data.Database import Database
 from Logic.Login import Login
+from Logic.Project import Project
 
 
 ## UNCOMMENT EACH TEST TO RUN IT - EDIT DATA WHERE NEEDED
@@ -55,25 +56,57 @@ from Logic.Login import Login
 #--------------
 # LOGIN
 #--------------
+#
+# def create_login():
+#     print("🔐 Creating login for E001...")
+#
+#     login = Login(
+#         loginid="login_casey",
+#         empid="E001",  # needs to exist
+#         password="secret123"
+#     )
+#
+#     try:
+#         login.save_to_database()
+#         print("✅ Login created for EMPID E001.")
+#     except Exception as e:
+#         print("❌ Failed to create login:")
+#         print(e)
+#
+# def main():
+#     create_login()
+#
 
-def create_login():
-    print("🔐 Creating login for E001...")
 
-    login = Login(
-        loginid="login_casey",
-        empid="E001",  # needs to exist
-        password="secret123"
+
+#--------------
+# PROJECT
+#--------------
+# from Logic.Project import Project
+
+def create_project():
+    print("📁 Creating sample project...")
+
+    project = Project(
+        projectid="P001",
+        name="Time Tracker DB Testing",
+        created_by="E001",
+        prior_projectid=None
     )
 
     try:
-        login.save_to_database()
-        print("✅ Login created for EMPID E001.")
+        project.save_to_database()
+        print("✅ Project P001 created.")
     except Exception as e:
-        print("❌ Failed to create login:")
+        print("❌ Failed to create project:")
         print(e)
 
 def main():
-    create_login()
+    create_project()
 
+
+
+
+# ALWAYS LEAVE UNCOMMENTED
 if __name__ == "__main__":
     main()

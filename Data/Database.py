@@ -55,9 +55,27 @@ class Database:
     # ======================
 
     @classmethod
+    def add_project(cls, projectid, name, created_by, date_created, prior_projectid=None, active=1):
+        print("🚀 Calling DB insert for project:", projectid)
+        print("📆 date_created type:", type(date_created))
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO projects 
+            (PROJECTID, PROJECT_NAME, CREATED_BY, DATE_CREATED, PRIOR_PROJECTID, PROJECT_ACTIVE)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (projectid, name, created_by, date_created, prior_projectid, active))
+        cls.commit()
+
+    @classmethod
     def get_all_projects(cls):
         cursor = cls.get_cursor()
-        cursor.execute("SELECT * FROM projects")
+        cursor.execute("SELECT PROJECTID, PROJECT_NAME FROM projects")
+        return cursor.fetchall()
+
+    @classmethod
+    def get_active_projects(cls):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT PROJECTID, PROJECT_NAME FROM projects WHERE PROJECT_ACTIVE = 1")
         return cursor.fetchall()
 
 
