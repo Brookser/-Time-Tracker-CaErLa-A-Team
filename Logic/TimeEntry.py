@@ -21,7 +21,26 @@ class TimeEntry:
         self.__manual_entry = int(is_manual)
 
     # Getters
-    # -------
+    def get_empid(self):
+        return self.__empid
+
+    def get_projectid(self):
+        return self.__projectid
+
+    def get_start_time(self):
+        return self.__start_time
+
+    def get_stop_time(self):
+        return self.__stop_time
+
+    def get_notes(self):
+        return self.__notes
+
+    def get_manual_entry(self):
+        return self.__manual_entry
+
+    def get_total_minutes(self):
+        return self.__total_minutes
 
     def calculate_total_minutes(self):
         if self.__start_time and self.__stop_time:
