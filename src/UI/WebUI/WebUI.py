@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from src.Logic.TimeEntry import TimeEntry
 from datetime import datetime
 
+
 app = Flask(__name__)
 
 @app.route("/")
