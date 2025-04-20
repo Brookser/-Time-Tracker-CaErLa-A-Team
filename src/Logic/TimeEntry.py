@@ -66,3 +66,13 @@ class TimeEntry:
     @staticmethod
     def get_all_entries():
         return Database.get_all_time_entries()
+
+    @staticmethod
+    def get_time_entries_filtered(empid=None, start_date=None, end_date=None):
+        return Database.get_time_entries_filtered(empid, start_date, end_date)
+
+    @staticmethod
+    def get_all_employees():
+        return Database.get_active_employees()
+
+
