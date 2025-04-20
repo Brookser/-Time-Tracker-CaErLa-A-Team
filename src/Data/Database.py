@@ -89,6 +89,15 @@ class Database:
         cursor.execute("SELECT * FROM department")
         return cursor.fetchall()
 
+    @classmethod
+    def add_department(cls, dptid, dpt_name, manager_id=None, active=1):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO department (DPTID, DPT_NAME, MANAGERID, DPT_ACTIVE)
+            VALUES (?, ?, ?, ?)
+        ''', (dptid, dpt_name, manager_id, active))
+        cls.commit()
+
     # ======================
     # 🔹 Login Queries
     # ======================
