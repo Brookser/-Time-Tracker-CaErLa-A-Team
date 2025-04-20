@@ -62,7 +62,7 @@ class TimeEntry:
             total_minutes=self.__total_minutes
         )
 
-    # Static method for filtering on reports
+    # Static method reporting
     @staticmethod
-    def get_time_entries_filtered(project_id, start_date, end_date):
-        return Database.get_time_entries_filtered(project_id, start_date, end_date)
+    def get_all_entries():
+        return Database.get_all_time_entries()

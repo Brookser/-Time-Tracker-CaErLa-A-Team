@@ -132,3 +132,8 @@ class Database:
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
 
+    @classmethod
+    def get_all_time_entries(cls):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT * FROM time")
+        return cursor.fetchall()

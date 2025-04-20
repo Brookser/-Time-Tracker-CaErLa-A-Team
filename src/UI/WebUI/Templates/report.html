@@ -1,0 +1,32 @@
+{% extends "default.html" %}
+{% block title %}Time Report{% endblock %}
+{% block header %}Time Report{% endblock %}
+
+{% block content %}
+    <h2>Time Entries</h2>
+
+    {% if entries %}
+        <table>
+            <tr>
+                <th>EMPID</th>
+                <th>PROJECTID</th>
+                <th>START</th>
+                <th>STOP</th>
+                <th>MINUTES</th>
+                <th>NOTES</th>
+            </tr>
+            {% for e in entries %}
+            <tr>
+                <td>{{ e[0] }}</td>
+                <td>{{ e[1] }}</td>
+                <td>{{ e[2] }}</td>
+                <td>{{ e[3] }}</td>
+                <td>{{ e[6] }}</td>
+                <td>{{ e[4] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No time entries found.</p>
+    {% endif %}
+{% endblock %}
