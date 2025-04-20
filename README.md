@@ -1,87 +1,145 @@
 # ⏱️ Time Tracker (CaErLa A-Team)
 
-A lightweight time tracking web app with a database backend and built-in reporting features.  
-Built using Python, Flask, and MariaDB — this MVP is part of a team project to recreate basic time tracking functionality like Harvest or Toggl.
+The Time Tracker is an app for logging time and managing projects. Built for individuals and teams, it supports multiple user roles (like Individual Users, Managers, and Admins) to track time, view performance, and generate actionable reports. Designed with clarity and scalability in mind, it helps teams stay aligned, improve productivity, and deliver work on time.
+
+Built with Python, Flask, and MariaDB, the app delivers core time tracking features through a lightweight, scalable framework.
+
+
+## 👥 Authors
+Abdullatif Al-Abdulrazzaq, Erika Brooks, and Casey Hill
 
 ---
 
-## 🚧 Project Overview
+## 📚 Table of Contents
+- [General Info](#general-info)
+- [Technologies Used](#technologies-used)
+- [Setup](#setup)
+- [Project Status](#project-status)
+- [Known Bugs](#known-bugs)
+- [License](#license)
 
-The Time Tracker app lets users:
+---
 
-- Log time entries manually or via start/stop
+## 📖 General Info
+This application allows users to:
+- Log time entries manually or with a start/stop system
 - Create and manage employees, projects, and departments
-- View logged time entries in a web dashboard
-- Filter/report by project and timeframe (in progress)
+- View and filter reports by project and date range
+- Track work across teams using a MariaDB backend and Flask frontend
 
 ---
 
-## 🧱 Tech Stack
+## 🛠 Technologies Used
 
 - **Python 3.11**
-- **Flask** (Jinja2 templating)
-- **MariaDB** (hosted on AWS EC2)
-- **HTML/CSS** for the reporting UI
-- **Pytest** for unit testing
-- **Chrome** Browser for testing
-- **JetBrains PyCharm** as primary development env 
-- Organized using **TDD principles**
+- **Flask** – with Jinja2 templates for web rendering
+- **MariaDB** – hosted on AWS EC2
+- **HTML/CSS** – for the frontend reporting UI
+- **Pytest** – for unit testing
+- **python-dotenv** – for handling environment variables
+- **Chrome** – for browser testing
+- **JetBrains PyCharm** – for development
+- Organized using **Test-Driven Development (TDD)** principles
 
 ---
 
-## 🚀 Getting Started
+## 🧩 Setup & Installation
 
-### 1. Clone the repo
+<details>
+<summary><strong style="font-size: 1.3em;"> Initial Setup </strong></summary>
 
+1. Clone this repository:
 ```bash
 git clone https://github.com/Brookser/-Time-Tracker-CaErLa-A-Team.git
 cd Time-Tracker-CaErLa-A-Team
 ```
 
-### 2. Requirements & Libraries
-Make sure you have Python 3.11+ installed. This project uses:
+2. Set up a Python virtual environment:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-- Flask – for serving the web interface
-- python-dotenv – for loading DB credentials from .env
-- MariaDB Connector – mariadb library for database access
-- Pytest – for running unit tests
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-### 3. Database Setup
->**Note: The full schema is still being finalized. Once complete, it will be provided in a schema.sql file.Log in and create the database:**
+</details>
+
+
+<details>
+<summary><strong style="font-size: 1.3em;"> Database Setup </strong></summary>
+
+> **Note: The full schema is still being finalized. Once complete, it will be provided in a \`schema.sql\` file.**
 
 If you'd like to create your own local copy of the database:
 
 1. Make sure MariaDB is installed.
 2. Log in and create the database:
-
-```bash 
+```bash
 CREATE DATABASE time_tracker;
 USE time_tracker;
 ```
-Run the schema script:
+
+3. Run the schema script:
 ```bash
 source schema.sql
 ```
+
 > 🛠️ **Using a different database?**
 >
-> This project uses the `mariadb` Python library to connect to a MariaDB instance hosted on AWS EC2.  
+> This project uses the \`mariadb\` Python library to connect to a MariaDB instance hosted on AWS EC2.  
 > If you plan to use another SQL database (e.g., MySQL, SQLite, PostgreSQL), you will need to:
->
-> - Replace `import mariadb` with the appropriate connector for your DB
-> - Update the `Database.connect()` method in `src/Data/Database.py` to match your driver’s connection format
-> - Ensure your SQL tables match the structure provided in `schema.sql`
+> - Replace \`import mariadb\` with the appropriate connector for your DB
+> - Update the \`Database.connect()\` method in \`src/Data/Database.py\` to match your driver’s connection format
+> - Ensure your SQL tables match the structure provided in \`schema.sql\`
 
+</details>
 
-### 4. Set up your .env file
+<details>
+<summary><strong style="font-size: 1.3em;"> Environment Configuration </strong></summary>
 
-```bash
+Create a `.env` file in the root of the project with the following:
+```env
 DB_HOST=your-db-host
 DB_USER=your-db-user
 DB_PASSWORD=your-db-password
 DB_NAME=time_tracker
-DB_PORT=3306 # or whatever port you have configured
+DB_PORT=3306
 ```
-### 5. Run the app
+
+</details>
+
+<details>
+<summary><strong style="font-size: 1.3em;"> Run the App </strong></summary>
+
 ```bash
 python src/WebUI.py
 ```
+
+Visit the app in your browser at:
+`http://localhost:5000`
+
+</details>
+
+## 🚧 Project Status
+
+This project is actively being developed as a team MVP.  
+Next planned features:
+- Role-based login/auth
+- In-browser start/stop time tracking
+- Project and employee CRUD functionality for admins and managers
+
+---
+
+## 🐛 Known Bugs
+
+- No error handling for failed DB connections (MVP build)
+- Time report filters not yet fully implemented
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
