@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Time Tracker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <header>
+        <h1>{% block header %}Time Tracker{% endblock %}</h1>
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/report">Reporting</a> |
+            <a href="/log-time">Log Time</a> |
+            <a href="/manage-projects">Projects</a> |
+            <a href="/manage-employees">Employees</a>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}
+        <p>Content goes here.</p>
+        {% endblock %}
+    </main>
+
+    <hr>
+    <footer>
+        <p><a href="/">Return to main menu</a></p>
+    </footer>
+
+</body>
+</html>
