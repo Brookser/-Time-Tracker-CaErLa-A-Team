@@ -24,6 +24,13 @@ class Project:
     def get_name(self):
         return self.__name
 
+    def get_created_by(self):
+        return self.__created_by
+    def get_date_created(self):
+        return self.__date_created
+    def get_prior_projectid(self):
+        return self.__prior_projectid
+
     def is_active(self):
         return self.__active == 1
 
