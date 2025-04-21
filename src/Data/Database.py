@@ -89,6 +89,15 @@ class Database:
         cursor.execute("SELECT * FROM department")
         return cursor.fetchall()
 
+    @classmethod
+    def add_department(cls, dptid, dpt_name, manager_id=None, active=1):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO department (DPTID, DPT_NAME, MANAGERID, DPT_ACTIVE)
+            VALUES (?, ?, ?, ?)
+        ''', (dptid, dpt_name, manager_id, active))
+        cls.commit()
+
     # ======================
     # 🔹 Login Queries
     # ======================
@@ -156,5 +165,34 @@ class Database:
             JOIN employee_table e ON t.EMPID = e.EMPID
             JOIN projects p ON t.PROJECTID = p.PROJECTID
         ''')
+        return cursor.fetchall()
+
+    @classmethod
+    def get_time_entries_filtered(cls, empid=None, start_date=None, end_date=None):
+        cursor = cls.get_cursor()
+
+        query = '''
+            SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME, 
+                   t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES
+            FROM time t
+            JOIN employee_table e ON t.EMPID = e.EMPID
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE 1=1
+        '''
+        params = []
+
+        if empid:
+            query += " AND t.EMPID = ?"
+            params.append(empid)
+
+        if start_date:
+            query += " AND t.START_TIME >= ?"
+            params.append(start_date)
+
+        if end_date:
+            query += " AND t.STOP_TIME <= ?"
+            params.append(end_date)
+
+        cursor.execute(query, params)
         return cursor.fetchall()
 
