@@ -4,20 +4,22 @@
 
 {% block content %}
     <h2>Filter Report</h2>
-    <form method="GET" action="/reports">
+    <form method="GET" action="/report">
         <label for="employee">Employee:</label>
         <select name="employee" id="employee">
             <option value="">-- All Employees --</option>
             {% for emp in employees %}
-                <option value="{{ emp[0] }}">{{ emp[1] }} {{ emp[2] }}</option>
+                <option value="{{ emp[0] }}" {% if request.args.get('employee') == emp[0] %}selected{% endif %}>
+                    {{ emp[1] }} {{ emp[2] }}
+                </option>
             {% endfor %}
         </select>
 
         <label for="start">Start Date:</label>
-        <input type="date" name="start" id="start">
+        <input type="date" name="start" id="start" value="{{ request.args.get('start', '') }}">
 
         <label for="end">End Date:</label>
-        <input type="date" name="end" id="end">
+        <input type="date" name="end" id="end" value="{{ request.args.get('end', '') }}">
 
         <button type="submit">Filter</button>
     </form>
@@ -38,12 +40,12 @@
             </tr>
             {% for e in entries %}
             <tr>
-                <td>{{ e[1] }} {{ e[2] }}</td>  <!-- first_name last_name -->
-                <td>{{ e[3] }}</td>             <!-- project_name -->
-                <td>{{ e[4] }}</td>             <!-- start_time -->
-                <td>{{ e[5] }}</td>             <!-- stop_time -->
-                <td>{{ e[6] }}</td>             <!-- total_minutes -->
-                <td>{{ e[7] }}</td>             <!-- notes -->
+                <td>{{ e[1] }} {{ e[2] }}</td>
+                <td>{{ e[3] }}</td>
+                <td>{{ e[4] }}</td>
+                <td>{{ e[5] }}</td>
+                <td>{{ e[6] }}</td>
+                <td>{{ e[7] }}</td>
             </tr>
             {% endfor %}
         </table>

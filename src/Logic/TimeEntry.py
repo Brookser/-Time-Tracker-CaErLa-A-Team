@@ -69,7 +69,11 @@ class TimeEntry:
 
     @staticmethod
     def get_time_entries_filtered(empid=None, start_date=None, end_date=None):
-        return Database.get_time_entries_filtered(empid, start_date, end_date)
+        return Database.get_time_entries_filtered(
+            start_date=start_date,
+            end_date=end_date,
+            empid=empid
+        )
 
     @staticmethod
     def get_all_employees():

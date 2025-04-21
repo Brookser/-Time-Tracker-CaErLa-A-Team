@@ -167,8 +167,37 @@ class Database:
         ''')
         return cursor.fetchall()
 
+    # @classmethod
+    # def get_time_entries_filtered(cls, empid=None, start_date=None, end_date=None):
+    #     cursor = cls.get_cursor()
+    #
+    #     query = '''
+    #         SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME,
+    #                t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES
+    #         FROM time t
+    #         JOIN employee_table e ON t.EMPID = e.EMPID
+    #         JOIN projects p ON t.PROJECTID = p.PROJECTID
+    #         WHERE 1=1
+    #     '''
+    #     params = []
+    #
+    #     if empid:
+    #         query += " AND t.EMPID = ?"
+    #         params.append(empid)
+    #
+    #     if start_date:
+    #         query += " AND t.START_TIME >= ?"
+    #         params.append(start_date)
+    #
+    #     if end_date:
+    #         query += " AND t.STOP_TIME <= ?"
+    #         params.append(end_date)
+    #
+    #     cursor.execute(query, params)
+    #     return cursor.fetchall()
+
     @classmethod
-    def get_time_entries_filtered(cls, empid=None, start_date=None, end_date=None):
+    def get_time_entries_filtered(cls, start_date=None, end_date=None, empid=None):
         cursor = cls.get_cursor()
 
         query = '''
@@ -181,10 +210,7 @@ class Database:
         '''
         params = []
 
-        if empid:
-            query += " AND t.EMPID = ?"
-            params.append(empid)
-
+        # 🔽 Add each condition individually
         if start_date:
             query += " AND t.START_TIME >= ?"
             params.append(start_date)
@@ -193,6 +219,16 @@ class Database:
             query += " AND t.STOP_TIME <= ?"
             params.append(end_date)
 
+        if empid:
+            query += " AND t.EMPID = ?"
+            params.append(empid)
+
+        # Debug
+        print("🔍 Query:", query)
+        print("📦 Params:", params)
+
         cursor.execute(query, params)
         return cursor.fetchall()
+
+
 
