@@ -1,6 +1,9 @@
 # ⏱️ Time Tracker (CaErLa A-Team)
 
-The Time Tracker is an app for logging time and managing projects. Built for individuals and teams, it supports multiple user roles (like Individual Users, Managers, and Admins) to track time, view performance, and generate actionable reports. Designed with clarity and scalability in mind, it helps teams stay aligned, improve productivity, and deliver work on time.
+The Time Tracker is an app for logging time and managing projects. Built for individuals and teams, 
+it supports multiple user roles (like Individual Users, Managers, and Admins) to track time, 
+view performance, and generate actionable reports. Designed with clarity and scalability in mind, 
+it helps teams stay aligned, improve productivity, and deliver work on time.
 
 Built with Python, Flask, and MariaDB, the app delivers core time tracking features through a lightweight, scalable framework.
 
@@ -38,6 +41,7 @@ This application allows users to:
 - **JetBrains PyCharm** – for development
 - Organized using **Test-Driven Development (TDD)** principles
 
+- **Additional Package for Tests** pip install mysql-connector-python
 
 ## 🧩 Setup & Installation
 
