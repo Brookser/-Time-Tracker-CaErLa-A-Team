@@ -6,19 +6,70 @@
 # Description:      Example: runs tests to:
 #                   • count number of required password resets
 #                   • retrieve inactive projects from the database
-#                   •
-#                   •
-#                   •
+#                   • projects with a PRIOR_PROJECTID
+#                   • projects with a 4/15/2025 start date
+#                   • inactive employees
+#                   • manual time entries
+#                   • time summary by employee
+#                   • project time summary
 # Input:            none
 # Output:           Expected results as follows:
 #                   • expected resets: 2096	Godfrey	Gaye
-#                   •
-#                   •
-#                   •
-#                   •
-# Sources:          Project Charter - Jira Story: Test 1
+#                   • Inactive Projects
+#                          10005 Blesbok
+#                          10008 Brazilian tapir
+#                          10009 Dog, raccoon
+#                          10014 Goose, andean
+#                          10022 Squirrel, antelope ground
+#                   •Projects with PRIOR_PROJECTID
+#                          10015 Goose, greylag
+#                          10016 Greater adjutant stork
+#                          10017 Javan gold-spotted mongoose
+#                          10020 Dog
+#                          10021 Racoon
+#                          10025 Squirrel
+#                   • Projects with 4/15/2025 start date
+#                          10015 Goose, greylag
+#                          10016 Greater adjutant stork
+#                          10017 Javan gold-spotted mongoose
+#                          10020 Dog
+#                          10021 Racoon
+#                          10025 Squirrel
+#                   • Inactive Employees
+#                          2088 Othello Beesey
+#                          2505 Aundrea Abela
+#                          6539 Kenny Scardifeild
+#                          8334 Dane Eynald
+#                   • manual entries = 8
+#                   • EmployeeID	num of entries	Expected Minute Totals
+#                         1094	2	264.96
+#                         1488	2	149.76
+#                         1610	3	205.92
+#                         2088	2	126.72
+#                         2505	4	426.24
+#                   • PROJECT_ID totals
+#                         10001	128.16
+#                         10003	128.16
+#                         10005	204.48
+#                         10006	243.36
+#                         10007	56.16
+#                         10009	128.16
+#                         10010	175.68
+#                         10011	97.92
+#                         10012	92.16
+#                         10014	99.36
+#                         10015	138.24
+#                         10016	126.72
+#                         10017	60.48
+#                         10018	142.56
+#                         10020	90.72
+#                         10021	133.92
+#                         10024	44.64
+#                         10025	118.08
+
+# Sources:          Project Charter - Jira Story: Tests 1 & 2
 #
-# Change Log:       - xx.xx.2025:
+# Change Log:       - 04.20.2025: Initial setup of tests
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************
