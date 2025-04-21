@@ -33,14 +33,14 @@ class Database:
     # ======================
 
     @classmethod
-    def add_employee(cls, empid, first_name, last_name, dptid, email=None, mgr_empid=None, active=1):
+    def add_employee(cls, empid, first_name, last_name, dptid, email=None, mgr_empid=None, active=1, emp_role="User"):
         cursor = cls.get_cursor()
         query = '''
             INSERT INTO employee_table
-            (EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, MGR_EMPID, EMP_ACTIVE)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, MGR_EMPID, EMP_ACTIVE, EMP_ROLE)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         '''
-        cursor.execute(query, (empid, first_name, last_name, dptid, email, mgr_empid, active))
+        cursor.execute(query, (empid, first_name, last_name, dptid, email, mgr_empid, active, emp_role))
         cls.commit()
 
     @classmethod

@@ -1,5 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from src.Logic.TimeEntry import TimeEntry
+from src.Data.Database import Database
+from src.Logic.Login import Login
+from src.Logic.Employee import Employee
 from datetime import datetime
 
 
@@ -65,6 +68,35 @@ def filter_report():
     return render_template("report.html",
                            entries=entries,
                            employees=all_employees)
+
+@app.route("/create-account", methods=["GET", "POST"])
+def create_account():
+    if request.method == "POST":
+        empid = request.form.get("empid")
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        dptid = request.form.get("dptid")
+        email = request.form.get("email")
+        mgr_empid = request.form.get("mgr_empid") or None
+        emp_role = request.form.get("emp_role")
+        password = request.form.get("password")
+
+        # Create employee
+        try:
+            Database.add_employee(empid, first_name, last_name, dptid, email, mgr_empid, active=1, emp_role=emp_role)
+        except Exception as e:
+            return f"❌ Error creating employee: {e}"
+
+        # Create login
+        try:
+            login = Login(loginid=f"login_{empid}", empid=empid, password=password)
+            login.save_to_database()
+        except Exception as e:
+            return f"❌ Error creating login: {e}"
+
+        return redirect("/")  # or render_template("account_created.html") if you prefer
+
+    return render_template("createAccount.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

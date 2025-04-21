@@ -1,0 +1,39 @@
+{% extends "default.html" %}
+{% block title %}Create Account{% endblock %}
+{% block header %}Create a New Account{% endblock %}
+
+{% block content %}
+    <form method="POST" action="/create-account">
+        <label for="empid">Employee ID:</label><br>
+        <input type="text" id="empid" name="empid" required><br><br>
+
+        <label for="first">First Name:</label><br>
+        <input type="text" id="first" name="first_name" required><br><br>
+
+        <label for="last">Last Name:</label><br>
+        <input type="text" id="last" name="last_name" required><br><br>
+
+        <label for="dptid">Department ID:</label><br>
+        <input type="text" id="dptid" name="dptid" required><br><br>
+
+        <label for="email">Email Address:</label><br>
+        <input type="email" id="email" name="email"><br><br>
+
+        <label for="manager">Manager ID (optional):</label><br>
+        <input type="text" id="manager" name="mgr_empid"><br><br>
+
+        <label for="role">Select Role:</label><br>
+        <select name="emp_role" id="role" required>
+            <option value="">-- Select Role --</option>
+            <option value="admin">Admin</option>
+            <option value="project_manager">Project Manager</option>
+            <option value="manager">Manager</option>
+            <option value="user">User</option>
+        </select><br><br>
+
+        <label for="password">Create Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <button type="submit">Create Account</button>
+    </form>
+{% endblock %}
