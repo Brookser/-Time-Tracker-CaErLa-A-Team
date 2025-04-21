@@ -20,6 +20,7 @@ import os
 import sys
 import mariadb
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -27,7 +28,7 @@ load_dotenv()
 
 def insert_sample_data():
     """
-    Insert data from the provided file into the database.
+    Insert sample data into the database tables.
     """
     try:
         # Connect to MariaDB
@@ -43,270 +44,212 @@ def insert_sample_data():
         # Create a cursor
         cursor = conn.cursor()
 
-        # Insert department data
-        departments = [
-            ('559', 'Legal', '1243', 1),
-            ('207', 'Marketing', '2096', 1),
-            ('443', 'Services', '2307', 1),
-            ('277', 'Training', '3981', 1),
-            ('604', 'Engineering', '4235', 1),
-            ('813', 'Support', '4730', 1),
-            ('221', 'Human Resources', '9616', 1),
-            ('556', 'Research and Development', '9888', 1),
-            ('343', 'Business Development', '9888', 1),
-            ('895', 'SeniorManagement', '9888', 1),
-            ('962', 'CEO', '9888', 1)
-        ]
+        try:
+            # Disable foreign key checks temporarily to handle circular references
+            cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 
-        cursor.executemany("""
-            INSERT INTO department (DPTID, DPT_NAME, MANAGERID, DPT_ACTIVE)
-            VALUES (?, ?, ?, ?)
-            """, departments)
+            # Insert Department data
+            print("Inserting department data...")
+            departments = [
+                ('D1001', 'Marketing', 'E1006', 1),
+                ('D1002', 'Training', 'E1011', 1),
+                ('D1003', 'Business Development', 'E1025', 1),
+                ('D1004', 'Services', 'E1007', 1),
+                ('D1005', 'Research and Development', 'E1025', 1),
+                ('D1006', 'Legal', 'E1002', 1),
+                ('D1007', 'Engineering', 'E1012', 1),
+                ('D1008', 'Support', 'E1014', 1)
+            ]
 
-        # Insert employee data
-        employees = [
-            ('1094', 'Lane', 'Beere', '559', 'lbeeree@rakuten.co.jp', '1243', 1),
-            ('1243', 'Bobina', 'Windless', '559', 'bwindless8@census.gov', '9730', 1),
-            ('1488', 'Elwin', 'Klaggeman', '207', 'eklaggemanc@free.fr', '2096', 1),
-            ('1610', 'Archibald', 'Benck', '207', 'abenckj@amazonaws.com', '2096', 1),
-            ('2088', 'Othello', 'Beesey', '207', 'obeeseym@plala.or.jp', '2096', 0),
-            ('2096', 'Godfrey', 'Gaye', '207', 'ggaye7@mashable.com', '9730', 1),
-            ('2307', 'Angelia', 'Favell', '443', 'afavella@hostgator.com', '9874', 1),
-            ('2505', 'Aundrea', 'Abela', '443', 'aabelak@vimeo.com', '2307', 0),
-            ('2764', 'Gilles', 'Shaylor', '443', 'gshaylorl@ezinearticles.com', '2307', 1),
-            ('3838', 'Dannie', 'Montgomery', '277', 'dmontgomery5@craigslist.org', '3981', 1),
-            ('3981', 'Gaby', 'Phizaclea', '277', 'gphizaclea9@prweb.com', '9874', 1),
-            ('4235', 'Doti', 'Le Moucheux', '604', 'dlemoucheuxg@skype.com', '9730', 1),
-            ('4446', 'Freeman', 'Jobbins', '604', 'fjobbinsd@xing.com', '4235', 1),
-            ('4730', 'Devy', 'Johann', '813', 'djohann2@amazon.co.uk', '9730', 1),
-            ('5018', 'Peg', 'Hawkes', '813', 'phawkes3@blinklist.com', '4730', 1),
-            ('5576', 'Christiane', 'Pullar', '813', 'cpullarb@state.tx.us', '4730', 1),
-            ('6539', 'Kenny', 'Scardifeild', '221', 'kscardifeildh@ameblo.jp', '9616', 0),
-            ('7638', 'Charlena', 'Drysdall', '556', 'cdrysdalli@mapy.cz', '8334', 1),
-            ('8012', 'Hersh', 'Clee', '343', 'hcleeo@google.it', '9874', 1),
-            ('8334', 'Dane', 'Eynald', '556', 'deynaldf@ning.com', '9874', 0),
-            ('9229', 'Husein', 'Barker', '221', 'hbarker4@tinypic.com', '9616', 1),
-            ('9616', 'Chantalle', 'Godsil', '221', 'cgodsil1@dailymail.co.uk', '9874', 1),
-            ('9730', 'Hamid', 'Klouz', '895', 'hklouz6@theatlantic.com', '9888', 1),
-            ('9874', 'Hilliard', 'Beedell', '895', 'hbeedell0@wsj.com', '9888', 1),
-            ('9888', 'Bert', 'Warlock', '962', 'bwarlockn@techcrunch.com', '9888', 1)
-        ]
+            cursor.execute("DELETE FROM department;")  # Clear existing data
+            for dept in departments:
+                cursor.execute("""
+                    INSERT INTO department (DPTID, DPT_NAME, MANAGERID, DPT_ACTIVE)
+                    VALUES (?, ?, ?, ?);
+                """, dept)
 
-        cursor.executemany("""
-            INSERT INTO employee_table (EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, MGR_EMPID, EMP_ACTIVE,
-            EMP_ROLE)
-            VALUES (?, ?, ?, ?, ?, ?, ?,?)
-            """, employees)
+            # Insert Employee data
+            print("Inserting employee data...")
+            employees = [
+                ('E1001', 'Lane', 'Beere', 'D1006', 'lbeeree@rakuten.co.jp', 'E1002', 1, 'individual'),
+                ('E1002', 'Bobina', 'Windless', 'D1006', 'bwindless8@census.gov', None, 1, 'manager'),
+                ('E1003', 'Elwin', 'Klaggeman', 'D1001', 'eklaggemanc@furl.net', 'E1006', 1, 'individual'),
+                ('E1004', 'Archibald', 'Benck', 'D1001', 'abenckj@amazonaws.com', 'E1006', 1, 'individual'),
+                ('E1005', 'Othello', 'Beesey', 'D1001', 'obeeseym@plala.or.jp', 'E1006', 0, 'individual'),
+                ('E1006', 'Godfrey', 'Gaye', 'D1001', 'ggaye7@mashable.com', None, 1, 'manager'),
+                ('E1007', 'Angelia', 'Favell', 'D1004', 'afavella@hostgator.com', None, 1, 'manager'),
+                ('E1008', 'Aundrea', 'Abela', 'D1004', 'aabelak@vimeo.com', 'E1007', 0, 'individual'),
+                ('E1009', 'Gilles', 'Shaylor', 'D1004', 'gshaylort@ezinearticles.com', 'E1007', 1, 'individual'),
+                ('E1010', 'Danny', 'Montgomery', 'D1002', 'dmontgomery6@stumbleupon.com', 'E1011', 1, 'individual'),
+                ('E1011', 'Gaby', 'Phizaclea', 'D1002', 'gphizaclea9@prweb.com', None, 1, 'manager'),
+                ('E1012', 'Doti', 'Le Moucheux', 'D1007', 'dlemoucheuxg@skype.com', None, 1, 'manager'),
+                ('E1013', 'Freeman', 'Jobbins', 'D1002', 'fjobbinsd@icio.us', 'E1012', 1, 'manager'),
+                ('E1014', 'Devy', 'Johann', 'D1008', 'djohann2@amazon.co.uk', None, 1, 'manager'),
+                ('E1015', 'Peg', 'Hawkes', 'D1008', 'phawkes3@blinklist.com', 'E1014', 1, 'individual'),
+                ('E1016', 'Christiane', 'Pullar', 'D1008', 'cpullarb@state.tx.us', 'E1014', 1, 'individual'),
+                ('E1017', 'Kenny', 'Scardifieldh', 'D1002', 'kscardifeldh@amazon.co.jp', 'E1011', 0, 'individual'),
+                ('E1018', 'Charlena', 'Drysdall', 'D1005', 'cdrysdalli@mapy.cz', 'E1025', 1, 'project_manager'),
+                ('E1019', 'Hersh', 'Cleeo', 'D1003', 'hcleeo@google.it', 'E1025', 1, 'individual'),
+                ('E1020', 'Dane', 'Eynald', 'D1005', 'deynaldf@ning.com', 'E1025', 0, 'project_manager'),
+                ('E1021', 'Husein', 'Barker', 'D1003', 'hbarker4@tinypic.com', 'E1025', 1, 'individual'),
+                ('E1022', 'Chantalle', 'Godsil', 'D1003', 'cgodsil1@dailymail.co.uk', 'E1025', 1, 'individual'),
+                ('E1023', 'Hamid', 'Klouz', 'D1007', 'hklouz6@theatlantic.com', 'E1012', 1, 'individual'),
+                ('E1024', 'Hilliard', 'Beedell', 'D1006', 'hbeedell0@wsj.com', 'E1002', 1, 'individual'),
+                ('E1025', 'Bert', 'Warlock', 'D1006', 'bwarlockn@techcrunch.com', None, 1, 'manager')
+            ]
 
-        # Insert login data
-        logins = [
-            ('9874', 'hbeedell0', '$2a$04$PEat6lDZaR/Q1eYO.AXpL.BWlTRdlMPZml5BrNVUx2we36QCObjnu', '2025-04-15', 0),
-            ('9616', 'cgodsil1', '$2a$04$DIzPbsZzSw8owBPMUqMWK..xV0iO1.kOwafuZcRdPgafxQNMBUET6', '2025-04-15', 0),
-            ('4730', 'djohann2', '$2a$04$Ud9a4TM4pbPu5MPWx3FpOuAaT380KGbGtYk4njlEz2uXU7nEwHgAy', '2025-04-15', 0),
-            ('5018', 'phawkes3', '$2a$04$vqplo6hClQ6LWBzSfdhyyO3.0rUe28GwDEFpjQPLm.ZmAmOXANBpu', '2025-04-15', 0),
-            ('9229', 'hbarker4', '$2a$04$RY1YpIx9SmGQf9PeInq33.Z/K3asToGtDQ4mQ7hbAZyNrmPFUe3Ze', '2025-04-15', 0),
-            ('3838', 'dmontgomery5', '$2a$04$b2hP03I.mb3z.6Fj8qkFquHif8dj/Iui9Gy/spvByQpqfT/RyVrcu', '2025-04-15', 0),
-            ('9730', 'hklouz6', '$2a$04$uOH1bfOJWunpuPAnRsssA.SQ21NESXFPdZRj6q.WD.elBrgF79ZjW', '2025-04-15', 0),
-            ('2096', 'ggaye7', '$2a$04$.Dqmfnqt2N2.Xf.yF0s6KOotoYR2xHMktR0h4Z45Ck/JVfCPIQj5q', '2025-04-15', 1),
-            ('1243', 'bwindless8', '$2a$04$tLIhoeahQhhzVKANKsicGOs1q9uULK0SvryVt/9MJTs7nbEGr.mYq', '2025-04-15', 0),
-            ('3981', 'gphizaclea9', '$2a$04$Rtl9oFusiHF6rrHK/1kFSOTg9CFrxmk4iwdIFTX9qYYVyKzmDro.C', '2025-04-15', 0),
-            ('2307', 'afavella', '$2a$04$5NktOozni47ggvCvboZTIeXiFkWnLZvObu5FV3Fun0s2nEXKlNHsO', '2025-04-15', 0),
-            ('5576', 'cpullarb', '$2a$04$7aRhz1oH6G1Wr8TRqxiChu85L.6OgPebrZulTnmrfdm2ivHrEswGi', '2025-04-15', 0),
-            ('1488', 'eklaggemanc', '$2a$04$LOWPe6S/OJoFkMkHCGdRZ.Jj4utYjZx/u1Y7RRVyTmz5RuMWmW8l2', '2025-04-15', 0),
-            ('4446', 'fjobbinsd', '$2a$04$je81vH.1N0WLG5dXSOMFfOkZB/BxD9HdRNLP2sUBm0mZ/tMFR78XO', '2025-04-15', 0),
-            ('1094', 'lbeeree', '$2a$04$EPyave8qMEQSh6fSymaCwOyBaJDFEMf2SLeTsY5GuFOVCn0nRZkde', '2025-04-15', 0),
-            ('8334', 'deynaldf', '$2a$04$ok5hSE6ZucBFBWxxqGCL1Otdyzqe.PbqaH/Cond69H36p1aMWMiw2', '2025-04-15', 0),
-            ('4235', 'dlemoucheuxg', '$2a$04$7YawGsTWo2LiU9wPsEU0eexaSzIPT/dJsEQDP7ZaPlaQdu6yf5VLS', '2025-04-15', 0),
-            ('6539', 'kscardifeildh', '$2a$04$dbkCC5mX1vy3Bk3NnlpHXuuUQYdVMqqnCTHg5Gbl6kMRmmx42BI1q', '2025-04-15', 0),
-            ('7638', 'cdrysdalli', '$2a$04$t0zOZp6sPZ7xEjZkhok0aOSiVOPYYTSR9IGPg2xy0Xn9bBXJL0huS', '2025-04-15', 0),
-            ('1610', 'abenckj', '$2a$04$T5po9lnqKOI6zqWbRblVjOb8kP2kaihCYI1HVClmYE.e.PYEPwf0.', '2025-04-15', 0),
-            ('2505', 'aabelak', '$2a$04$ncN3s3vkFN/OnaxUJb8xvOsauuqy.SUvz3FIF4sbuWQVwBFZqD7EC', '2025-04-15', 0),
-            ('2764', 'gshaylorl', '$2a$04$WHt6a1R0lQyqaGhhCD05VeqP8QuvdsLWfa2GZTcjleJX237/9LrV6', '2025-04-15', 0),
-            ('2088', 'obeeseym', '$2a$04$QLUTLYpmISVw9X5EjJE3aOX9sYIBeK00kYxbHLrfWsT./VYQ9RAaW', '2025-04-15', 0),
-            ('9888', 'bwarlockn', '$2a$04$EwVr0AxhDGEcDVzwpn3fbeSiyLF0JtiFudaN3KKImqjHbhAA4G276', '2025-04-15', 0),
-            ('8012', 'hcleeo', '$2a$04$9LtHUytu8HSfUoabmQwbaOnjSdylxQtYS7jP6R/T5280xOxWZ04Nu', '2025-04-15', 0)
-        ]
+            cursor.execute("DELETE FROM employee_table;")  # Clear existing data
+            for emp in employees:
+                cursor.execute("""
+                    INSERT INTO employee_table 
+                    (EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, MGR_EMPID, EMP_ACTIVE, EMP_ROLE)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                """, emp)
 
-        cursor.executemany("""
-            INSERT INTO login_table (LOGINID, EMPID, PASSWORD, LAST_RESET, FORCE_RESET)
-            VALUES (?, ?, ?, ?, ?)
-            """, logins)
+            # Insert Login data
+            print("Inserting login data...")
+            logins = [
+                ('E1001', 'lbeeree', '$2a$04$EPyave8qMEQSh6fSymaCwOyBaJDFEM2SLeTsY5GuFOVCn0nRZkde', '4/15/2025', 0),
+                ('E1002', 'bwindless8', '$2a$04$tLIhoeshQhhzVKANKsfcGOs1q9uULk0SwyvVo9MJTs7nbEGr.mYq', '4/15/2025', 0),
+                ('E1003', 'eklaggemanc', '$2a$04$LOWPes5QJofFKMrHC6dRZJidkrv723T78RVyTmz5RuMWmW8I2', '4/15/2025', 0),
+                ('E1004', 'abenckj', '$2a$04$T5po9lnqKOI6zqWbRbIVjOb8kP2kaihCYI1HVCImYE.e.PYEPwR0', '4/15/2025', 0),
+                ('E1005', 'obeeseym', '$2a$04$QUTLYpmlSVw9X5EjE3aQ9sYiBeK00kYxbHLrfWsT./VYQ9RAaW', '4/15/2025', 0),
+                ('E1006', 'ggaye7', '$2a$04$.Dqmfnqt2N2.XtyPo6KOotoYR2xHMkR0h4Z45CkJ/Vt6PIQj5q', '4/15/2025', 1),
+                ('E1007', 'afavella', '$2a$04$5NktOozn4fywGv0oZTleXUfQ15dRGizrJnp52n5XKlNHsO', '4/15/2025', 0),
+                ('E1008', 'aabelak', '$2a$04$ncN3s3vkFN/OnaxUJb8xvQsauuqy.SJvz3fF4sbuWQVwBFZqD7EC', '4/15/2025', 0),
+                ('E1009', 'gshaylort', '$2a$04$WH6a1R0IQyqaEnhCD05veq9QuvdsLWfsZ6ZTcjleJX2379Lrv6', '4/15/2025', 0),
+                ('E1010', 'dmontgomery6', '$2a$04$b2hPQJLph3x.6Fi8oKgufiBd/IuKhXtDAgfwDvOpofT/RwYcu', '4/15/2025', 0),
+                ('E1011', 'gphizaclea9', '$2a$04$Rt9oFusIHF6rrHK/1kFSOTg9Cvnmk4iwtIFTX9qYWyKzmDro.C', '4/15/2025', 0),
+                ('E1012', 'dlemoucheuxg', '$2a$04$7YawGsTWc2LiI0wPsE0UeaoeSaSlPTJ7JsEQDP7ZaPlaQdu6y5VLS', '4/15/2025',
+                 0),
+                ('E1013', 'fjobbinsd', '$2a$04$je81yH.1N0WL65dX9OMFfOkzB/Bxb9HdRNLP2sUBm0mZMFR78XO', '4/15/2025', 0),
+                ('E1014', 'djohann2', '$2a$04$Ud9a4TM4phSu5MPWxFgCuAaT380K6bGYkqnlEz2cXU7nEwHcy', '4/15/2025', 0),
+                ('E1015', 'phawkes3', '$2a$04$vqplo6hCIQ6LWBzSfdnyyO3.0rUe286OFEpjQPLm.ZnAmOXANBpu', '4/15/2025', 0),
+                ('E1016', 'cpullarb', '$2a$04$7aRhzIoH6G1Wt8TfqxiChu85LOgPz6bZuITmmfdm2fvBrFswGi', '4/15/2025', 0),
+                (
+                'E1017', 'kscardifeldh', '$2a$04$dhkCCbmcX1w28k3NuInHXuuUQvt.6voHTHa5Gbl6kMRnmbw42BLg', '4/15/2025', 0),
+                ('E1018', 'cdrysdalli', '$2a$04$i0zOZp6sPZ7xEjZkhok0aOSiVOPYfT89fGPg2xgXxn9bBXJt0huS', '4/15/2025', 0),
+                ('E1019', 'hcleeo', '$2a$04$9LHUynLcH$fUoabmQwbaOnjSdykQtYS7jP6R/T5280xOxWZ04Nu', '4/15/2025', 0),
+                ('E1020', 'deynaldf', '$2a$04$ok5hS66ZucBFBWxqGCL1Otdyzqe.PbqaH/Cond69H36p1aWWMrw2', '4/15/2025', 0),
+                ('E1021', 'hbarker4', '$2a$04$hYY1yb3Gxph28ROPaInq33.Z/K3asTqG4h7ppDhAZyNrmPFlc3Ze', '4/15/2025', 0),
+                ('E1022', 'cgodsil1', '$2a$04$DiZPbsZz5w8owBPMUqMWK..xV0IO1.kOwafuZcRdPgafxQNMBUET6', '4/15/2025', 0),
+                ('E1023', 'hklouz6', '$2a$04$uOH1bfOJWunpuPAnRsssA.SQ21NESXFPdZRj6q.WD.elbRgF75ZjW', '4/15/2025', 0),
+                ('E1024', 'hbeedell0', '$2a$04$PEa6t0ZaR/Q1eVO.AXpL8WiTRdH4PZmQBrNVUJzwe36QCQDjnu', '4/15/2025', 0),
+                ('E1025', 'bwarlockn', '$2a$04$EvWr0AxhDGEcDVzvpn3fbe$jvLF0hFudaN3KKtmqfHbhAA4G276', '4/15/2025', 0)
+            ]
 
-        # # Insert role_names data
-        # roles = [
-        #     ('1', 'individual_user'),
-        #     ('2', 'manager'),
-        #     ('3', 'project_manager'),
-        #     ('4', 'vp_csuite'),
-        #     ('5', 'CEO')
-        # ]
-        #
-        # cursor.executemany("""
-        #     INSERT INTO role_names (ROLEID, ROLE_NAME)
-        #     VALUES (?, ?)
-        #     """, roles)
-        #
-        # # Insert employee_roles data
-        # employee_roles = [
-        #     (None, '1094', '1'),
-        #     (None, '1243', '2'),
-        #     (None, '1488', '1'),
-        #     (None, '1610', '1'),
-        #     (None, '2088', '1'),
-        #     (None, '2096', '2'),
-        #     (None, '2307', '2'),
-        #     (None, '2505', '1'),
-        #     (None, '2764', '1'),
-        #     (None, '3838', '1'),
-        #     (None, '3981', '2'),
-        #     (None, '4235', '2'),
-        #     (None, '4446', '1'),
-        #     (None, '4730', '2'),
-        #     (None, '5018', '1'),
-        #     (None, '5576', '1'),
-        #     (None, '6539', '1'),
-        #     (None, '7638', '1'),
-        #     (None, '8012', '3'),
-        #     (None, '8334', '3'),
-        #     (None, '9229', '1'),
-        #     (None, '9616', '3'),
-        #     (None, '9730', '4'),
-        #     (None, '9874', '4'),
-        #     (None, '9888', '5')
-        # ]
-        #
-        # cursor.executemany("""
-        #     INSERT INTO employee_roles (EMP_ROLE_ID, EMPID, ROLEID)
-        #     VALUES (?, ?, ?)
-        #     """, employee_roles)
+            cursor.execute("DELETE FROM login_table;")  # Clear existing data
+            for login in logins:
+                cursor.execute("""
+                    INSERT INTO login_table (LOGINID, EMPID, PASSWORD, LAST_RESET, FORCE_RESET)
+                    VALUES (?, ?, ?, STR_TO_DATE(?, '%m/%d/%Y'), ?);
+                """, login)
 
-        # Insert projects data
-        projects = [
-            ('10001', 'Andean goose', '1488', '2025-04-01', None, 1),
-            ('10002', 'Antelope, sable', '4446', '2025-04-01', None, 1),
-            ('10003', 'Argalis', '1488', '2025-04-01', None, 1),
-            ('10004', 'Bare-faced go away bird', '1488', '2025-04-01', None, 1),
-            ('10005', 'Blesbok', '3838', '2025-04-01', None, 0),
-            ('10006', 'Boat-billed heron', '1610', '2025-04-01', None, 1),
-            ('10007', 'Bottle-nose dolphin', '1610', '2025-04-01', None, 1),
-            ('10008', 'Brazilian tapir', '9730', '2025-04-01', None, 0),
-            ('10009', 'Dog, raccoon', '1094', '2025-04-01', None, 0),
-            ('10010', 'Dolphin, striped', '2088', '2025-04-01', None, 1),
-            ('10011', 'Flamingo, greater', '2088', '2025-04-01', None, 1),
-            ('10012', 'Frilled dragon', '2088', '2025-04-01', None, 1),
-            ('10013', 'Giant heron', '2088', '2025-04-01', None, 1),
-            ('10014', 'Goose, andean', '9229', '2025-04-01', None, 0),
-            ('10015', 'Goose, greylag', '9229', '2025-04-15', '10014', 1),
-            ('10016', 'Greater adjutant stork', '3838', '2025-04-15', '10005', 1),
-            ('10017', 'Javan gold-spotted mongoose', '9730', '2025-04-15', '10008', 1),
-            ('10018', 'Legaan, Monitor (unidentified)', '8012', '2025-04-01', None, 1),
-            ('10019', 'Lynx, african', '8012', '2025-04-01', None, 1),
-            ('10020', 'Dog', '1094', '2025-04-15', '10009', 1),
-            ('10021', 'Racoon', '1094', '2025-04-15', '10009', 1),
-            ('10022', 'Squirrel, antelope ground', '8012', '2025-04-01', None, 0),
-            ('10023', 'Steenbuck', '8012', '2025-04-01', None, 1),
-            ('10024', 'Vulture, oriental white-backed', '8012', '2025-04-01', None, 1),
-            ('10025', 'Squirrel', '4446', '2025-04-15', '10022', 1)
-        ]
+            # Insert Projects data
+            print("Inserting projects data...")
+            projects = [
+                ('P10001', 'Andean goose', 'E1003', '4/1/2025', None, 1),
+                ('P10002', 'Antelope, sable', 'E1013', '4/1/2025', None, 1),
+                ('P10003', 'Argalis', 'E1003', '4/1/2025', None, 1),
+                ('P10004', 'Bare-faced go away bird', 'E1003', '4/1/2025', None, 1),
+                ('P10005', 'Blesbok', 'E1010', '4/1/2025', None, 0),
+                ('P10006', 'Boat-billed heron', 'E1004', '4/1/2025', None, 1),
+                ('P10007', 'Bottle-nose dolphin', 'E1004', '4/1/2025', None, 1),
+                ('P10008', 'Brazilian tapir', 'E1023', '4/1/2025', None, 0),
+                ('P10009', 'Dog, raccoon', 'E1001', '4/1/2025', None, 0),
+                ('P10010', 'Dolphin, striped', 'E1005', '4/1/2025', None, 1),
+                ('P10011', 'Flamingo, greater', 'E1005', '4/1/2025', None, 1),
+                ('P10012', 'Frilled dragon', 'E1005', '4/1/2025', None, 1),
+                ('P10013', 'Giant heron', 'E1005', '4/1/2025', None, 1),
+                ('P10014', 'Goose, andean', 'E1021', '4/1/2025', None, 0),
+                ('P10015', 'Goose, greylag', 'E1021', '4/15/2025', 'P10014', 1),
+                ('P10016', 'Greater adjutant stork', 'E1010', '4/15/2025', 'P10005', 1),
+                ('P10017', 'Javan gold-spotted mongoose', 'E1023', '4/15/2025', 'P10008', 1),
+                ('P10018', 'Legaan, Monitor (unidentified)', 'E1019', '4/1/2025', None, 1),
+                ('P10019', 'Lynx, african', 'E1019', '4/1/2025', None, 1),
+                ('P10020', 'Dog', 'E1001', '4/15/2025', 'P10009', 1),
+                ('P10021', 'Raccoon', 'E1001', '4/15/2025', 'P10009', 1),
+                ('P10022', 'Squirrel, antelope ground', 'E1019', '4/1/2025', None, 0),
+                ('P10023', 'Steenbuck', 'E1019', '4/1/2025', None, 1),
+                ('P10024', 'Vulture, oriental white-backed', 'E1019', '4/1/2025', None, 1),
+                ('P10025', 'Squirrel', 'E1013', '4/15/2025', 'P10022', 1)
+            ]
 
-        cursor.executemany("""
-            INSERT INTO projects (PROJECTID, PROJECT_NAME, CREATED_BY, DATE_CREATED, PRIOR_PROJECTID, PROJECT_ACTIVE)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, projects)
+            cursor.execute("DELETE FROM projects;")  # Clear existing data
+            for project in projects:
+                cursor.execute("""
+                    INSERT INTO projects 
+                    (PROJECTID, PROJECT_NAME, CREATED_BY, DATE_CREATED, PRIOR_PROJECTID, PROJECT_ACTIVE)
+                    VALUES (?, ?, ?, STR_TO_DATE(?, '%m/%d/%Y'), ?, ?);
+                """, project)
 
-        # Insert time data with correct datetime format
-        time_entries = [
-            (None, '1243', '10001', '2024-04-05 09:50:00', '2024-04-05 11:59:00',
-             'Integer ac leo. Pellentesque ultrices mattis odio. Donec vitae nisi.', 0),
-            (None, '1488', '10003', '2024-12-09 16:47:00', '2024-12-09 18:01:00',
-             'Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.',
-             1),
-            (None, '1610', '10003', '2024-04-17 04:40:00', '2024-04-17 05:35:00',
-             'Duis aliquam convallis nunc. Proin at turpis a pede posuere nonummy. Integer non velit.', 0),
-            (None, '1488', '10005', '2025-04-14 04:01:00', '2025-04-14 05:17:00',
-             'Suspendisse potenti. In eleifend quam a odio. In hac habitasse platea dictumst.', 1),
-            (None, '2088', '10005', '2025-01-08 20:09:00', '2025-01-08 21:05:00',
-             'Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero.',
-             0),
-            (None, '9730', '10005', '2025-03-11 09:51:00', '2025-03-11 11:03:00',
-             'Sed sagittis. Nam congue, risus semper porta volutpat, quam pede lobortis ligula, sit amet eleifend pede libero quis orci. Nullam molestie nibh in lectus.',
-             0),
-            (None, '2088', '10006', '2025-01-24 03:11:00', '2025-01-24 04:21:00',
-             'Cras non velit nec nisi vulputate nonummy. Maecenas tincidunt lacus at velit. Vivamus vel nulla eget eros elementum pellentesque.',
-             0),
-            (None, '2505', '10006', '2024-05-29 07:58:00', '2024-05-29 09:56:00',
-             'Donec diam neque, vestibulum eget, vulputate ut, ultrices vel, augue. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec pharetra, magna vestibulum aliquet ultrices, erat tortor sollicitudin mi, sit amet lobortis sapien sapien non mi. Integer ac neque.',
-             0),
-            (None, '9874', '10006', '2025-01-16 14:46:00', '2025-01-16 15:41:00',
-             'Phasellus in felis. Donec semper sapien a libero. Nam dui.', 0),
-            (None, '5576', '10007', '2024-06-23 21:55:00', '2024-06-23 22:51:00',
-             'Duis bibendum, felis sed interdum venenatis, turpis enim blandit mi, in porttitor pede justo eu massa. Donec dapibus. Duis at velit eu est congue elementum.',
-             0),
-            (None, '2096', '10009', '2024-03-10 19:27:00', '2024-03-10 20:39:00',
-             'Sed sagittis. Nam congue, risus semper porta volutpat, quam pede lobortis ligula, sit amet eleifend pede libero quis orci. Nullam molestie nibh in lectus.',
-             1),
-            (None, '2505', '10009', '2024-06-22 08:15:00', '2024-06-22 09:11:00',
-             'In sagittis dui vel nisl. Duis ac nibh. Fusce lacus purus, aliquet at, feugiat non, pretium quis, lectus.',
-             1),
-            (None, '2307', '10010', '2025-01-23 01:01:00', '2025-01-23 02:03:00',
-             'Duis aliquam convallis nunc. Proin at turpis a pede posuere nonummy. Integer non velit.', 1),
-            (None, '4446', '10010', '2025-03-07 11:42:00', '2025-03-07 13:36:00',
-             'Vestibulum ac est lacinia nisi venenatis tristique. Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat.',
-             0),
-            (None, '7638', '10011', '2025-02-13 04:19:00', '2025-02-13 05:57:00',
-             'In congue. Etiam justo. Etiam pretium iaculis justo.', 1),
-            (None, '5018', '10012', '2024-06-15 19:12:00', '2024-06-15 20:44:00',
-             'Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.',
-             0),
-            (None, '8012', '10014', '2025-04-06 09:30:00', '2025-04-06 11:09:00',
-             'Pellentesque at nulla. Suspendisse potenti. Cras in purus eu magna vulputate luctus.', 1),
-            (None, '1094', '10015', '2024-08-07 08:32:00', '2024-08-07 10:50:00',
-             'Nulla ut erat id mauris vulputate elementum. Nullam varius. Nulla facilisi.', 0),
-            (None, '1094', '10016', '2025-02-04 08:28:00', '2025-02-04 10:34:00',
-             'Praesent id massa id nisl venenatis lacinia. Aenean sit amet justo. Morbi ut odio.', 0),
-            (None, '1610', '10017', '2025-03-31 13:09:00', '2025-03-31 14:09:00',
-             'Quisque porta volutpat erat. Quisque erat eros, viverra eget, congue eget, semper rutrum, nulla. Nunc purus.',
-             0),
-            (None, '8334', '10018', '2025-02-05 02:50:00', '2025-02-05 05:12:00',
-             'Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.',
-             0),
-            (None, '1610', '10020', '2024-10-09 13:38:00', '2024-10-09 15:09:00',
-             'Fusce posuere felis sed lacus. Morbi sem mauris, laoreet ut, rhoncus aliquet, pulvinar sed, nisl. Nunc rhoncus dui vel sem.',
-             1),
-            (None, '2505', '10021', '2024-03-26 03:58:00', '2024-03-26 06:12:00',
-             'In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet.', 0),
-            (None, '9229', '10024', '2024-10-30 11:00:00', '2024-10-30 11:45:00',
-             'Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.',
-             0),
-            (None, '2505', '10025', '2025-04-07 03:24:00', '2025-04-07 05:22:00',
-             'Donec diam neque, vestibulum eget, vulputate ut, ultrices vel, augue. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec pharetra, magna vestibulum aliquet ultrices, erat tortor sollicitudin mi, sit amet lobortis sapien sapien non mi. Integer ac neque.',
-             0)
-        ]
+            # Insert Time data
+            print("Inserting time data...")
+            times = [
+                ('T1001', 'E1001', 'P10001', '4/5/2024 9:50', '4/5/2024 11:59', 'Integer ac', 0),
+                ('T1002', 'E1003', 'P10003', '12/9/2024 16:47', '12/9/2024 18:01', 'Vestibulu', 0),
+                ('T1003', 'E1005', 'P10005', '4/14/2025 4:01', '4/14/2025 5:17', 'Suspendis', 1),
+                ('T1004', 'E1005', 'P10005', '1/8/2025 20:09', '1/8/2025 21:05', 'Mauris en', 0),
+                ('T1005', 'E1005', 'P10005', '3/11/2025 9:51', '3/11/2025 11:03', 'Sed sagit', 0),
+                ('T1006', 'E1006', 'P10006', '1/24/2025 3:11', '1/24/2025 4:21', 'Cras non ', 0),
+                ('T1007', 'E1006', 'P10006', '5/29/2024 7:58', '5/29/2024 9:56', 'Donec di', 0),
+                ('T1008', 'E1006', 'P10006', '1/16/2025 14:46', '1/16/2025 15:41', 'Phasellus', 0),
+                ('T1009', 'E1007', 'P10007', '6/23/2024 22:07', '6/23/2024 22:51', 'Duis bibe', 1),
+                ('T1010', 'E1007', 'P10009', '3/10/2024 19:27', '3/10/2024 20:39', 'Sed sagit', 1),
+                ('T1011', 'E1007', 'P10009', '6/22/2024 8:15', '6/22/2024 9:11', 'In sagitt', 1),
+                ('T1012', 'E1010', 'P10010', '1/23/2025 1:01', '1/23/2025 2:03', 'Duis aliqu', 0),
+                ('T1013', 'E1011', 'P10011', '2/13/2025 4:19', '2/13/2025 5:57', 'In congue', 1),
+                ('T1014', 'E1012', 'P10012', '6/15/2024 19:12', '6/15/2024 20:44', 'Maecenas ', 0),
+                ('T1015', 'E1014', 'P10014', '4/6/2025 9:30', '4/6/2025 11:09', 'Pellentes', 1),
+                ('T1016', 'E1015', 'P10015', '8/7/2024 8:32', '8/7/2024 10:50', 'Nulla ut ', 0),
+                ('T1017', 'E1016', 'P10016', '2/4/2025 8:28', '2/4/2025 10:34', 'Praesent ', 0),
+                ('T1018', 'E1017', 'P10017', '3/31/2025 13:09', '3/31/2025 14:09', 'Quisque a', 0),
+                ('T1019', 'E1018', 'P10018', '2/5/2025 5:09', '2/5/2025 5:12', 'Vestibulu', 0),
+                ('T1020', 'E1019', 'P10020', '10/9/2024 13:38', '10/9/2024 15:09', 'Fusce po', 1),
+                ('T1021', 'E1021', 'P10021', '3/26/2024 3:58', '3/26/2024 6:12', 'In quis ju', 0),
+                ('T1022', 'E1024', 'P10024', '10/30/2024 11:36', '10/30/2024 11:45', 'Maecenas ', 0),
+                ('T1023', 'E1025', 'P10025', '4/7/2025 3:24', '4/7/2025 5:22', 'Donec di', 0)
+            ]
 
-        cursor.executemany("""
-            INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, time_entries)
+            cursor.execute("DELETE FROM time;")  # Clear existing data
+            for time_entry in times:
+                # Parse datetime strings
+                start_time = datetime.strptime(time_entry[3], '%m/%d/%Y %H:%M')
+                stop_time = datetime.strptime(time_entry[4], '%m/%d/%Y %H:%M')
 
-        # Commit changes
-        conn.commit()
+                cursor.execute("""
+                    INSERT INTO time 
+                    (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                """, (time_entry[0], time_entry[1], time_entry[2], start_time, stop_time, time_entry[5], time_entry[6]))
 
-        print("Sample data inserted successfully.")
+            # Re-enable foreign key checks
+            cursor.execute("SET FOREIGN_KEY_CHECKS=1;")
 
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
+            # Commit changes
+            conn.commit()
+            print("Sample data insertion completed successfully.")
+
+        except mariadb.Error as error:
+            # Rollback in case of any error
+            conn.rollback()
+            print(f"Error during data insertion: {error}")
+            raise
+
+        finally:
+            # Close cursor and connection
+            cursor.close()
+            conn.close()
 
     except mariadb.Error as error:
-        print(f"Error inserting sample data: {error}")
+        print(f"Error connecting to database: {error}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    print("=== Inserting Dummy Data… ===")
+    print("=== Inserting sample data into the database tables… ===")
     insert_sample_data()
-
-    print("=== Dummy Data setup complete! ===")
+    print("=== Sample data insertion complete! ===")
 
 
 # **********************************************************************************************************************
