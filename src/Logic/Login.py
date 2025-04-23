@@ -55,6 +55,28 @@ class Login:
         )
 
     # Static method to fetch login record
+    # @staticmethod
+    # def get_by_empid(empid):
+    #     row = Database.get_login_by_empid(empid)
+    #     if row:
+    #         return Login(
+    #             loginid=row[0],
+    #             empid=row[1],
+    #             password=row[2],
+    #             last_reset=row[3],
+    #             force_reset=row[4]
+    #         )
+    #     return None
+
     @staticmethod
-    def get_by_empid(empid):
-        return Database.get_login_by_empid(empid)
+    def get_by_email(email):
+        row = Database.get_login_by_email(email)
+        if row:
+            return Login(
+                loginid=row[0],
+                empid=row[1],
+                password=row[2],
+                last_reset=row[3],
+                force_reset=row[4]
+            )
+        return None

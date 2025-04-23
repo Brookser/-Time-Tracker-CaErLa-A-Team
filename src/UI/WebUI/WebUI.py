@@ -94,9 +94,27 @@ def create_account():
         except Exception as e:
             return f"❌ Error creating login: {e}"
 
-        return redirect("/")  # or render_template("account_created.html") if you prefer
+        # return redirect("/")  # or render_template("account_created.html")
+        return redirect("/login") # test redirect to login
 
     return render_template("createAccount.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        login_record = Login.get_by_email(email)
+
+        if login_record and login_record.get_password() == password:
+            return redirect("/")
+        else:
+            return "❌ Invalid email or password."
+
+    return render_template("login.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

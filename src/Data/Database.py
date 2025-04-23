@@ -126,6 +126,17 @@ class Database:
         ''', (new_password, last_reset, force_reset, empid))
         cls.commit()
 
+    @classmethod
+    def get_login_by_email(cls, email):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            SELECT l.LOGINID, l.EMPID, l.PASSWORD, l.LAST_RESET, l.FORCE_RESET
+            FROM login_table l
+            JOIN employee_table e ON l.EMPID = e.EMPID
+            WHERE e.EMAIL_ADDRESS = ?
+        ''', (email,))
+        return cursor.fetchone()
+
 
 # ======================
 # 🔹 TimeEntry Queries
