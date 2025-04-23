@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, url_for
+from functools import wraps
 from src.Logic.TimeEntry import TimeEntry
 from src.Data.Database import Database
 from src.Logic.Login import Login
@@ -7,12 +8,33 @@ from datetime import datetime
 
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
+
+# @app.route("/")
+# def home():
+#     menu_choices = {
+#         "/report": "View Time Report"
+#     }
+#     return render_template("index.html", menu_choices=menu_choices)
 
 @app.route("/")
 def home():
+    if "empid" not in session:
+        return redirect("/login")
+
+    role = session.get("emp_role", "user")  # default to user if missing
+
     menu_choices = {
-        "/report": "View Time Report"
+        "/report": "View Time Report",
+        "/log-time": "Log Time"
     }
+
+    if role in ["admin", "manager", "project_manager"]:
+        menu_choices["/manage-projects"] = "Projects"
+
+    if role in ["admin", "manager"]:
+        menu_choices["/manage-employees"] = "Employees"
+
     return render_template("index.html", menu_choices=menu_choices)
 
 # @app.route("/report", methods=["GET"])
@@ -109,11 +131,26 @@ def login():
         login_record = Login.get_by_email(email)
 
         if login_record and login_record.get_password() == password:
+            session["empid"] = login_record.get_empid()
+            session["emp_role"] = login_record.get_role()
+
+            # Get employee details
+            employee = Database.get_employee_by_empid(login_record.get_empid())
+            if employee:
+                session["first_name"] = employee[1]  # assuming first_name is second column
+
             return redirect("/")
         else:
             return "❌ Invalid email or password."
 
     return render_template("login.html")
+
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
 
 
 if __name__ == "__main__":

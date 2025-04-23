@@ -130,11 +130,17 @@ class Database:
     def get_login_by_email(cls, email):
         cursor = cls.get_cursor()
         cursor.execute('''
-            SELECT l.LOGINID, l.EMPID, l.PASSWORD, l.LAST_RESET, l.FORCE_RESET
+            SELECT l.LOGINID, l.EMPID, l.PASSWORD, l.LAST_RESET, l.FORCE_RESET, e.EMP_ROLE
             FROM login_table l
             JOIN employee_table e ON l.EMPID = e.EMPID
             WHERE e.EMAIL_ADDRESS = ?
         ''', (email,))
+        return cursor.fetchone()
+
+    @classmethod
+    def get_employee_by_empid(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT * FROM employee_table WHERE EMPID = ?", (empid,))
         return cursor.fetchone()
 
 

@@ -8,17 +8,36 @@
 <body>
 
     <header>
-        <h1>{% block header %}Time Tracker{% endblock %}</h1>
+    <h1>{% block header %}Time Tracker{% endblock %}</h1>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
         <nav>
             <a href="/">Home</a> |
             <a href="/report">Reporting</a> |
             <a href="/log-time">Log Time</a> |
-            <a href="/manage-projects">Projects</a> |
-            <a href="/manage-employees">Employees</a> |
-            <a href="/login">Login</a>
+
+            {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}
+                <a href="/manage-projects">Projects</a> |
+                <a href="/manage-employees">Employees</a> |
+            {% endif %}
+
+            {% if session.get('empid') %}
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+            {% endif %}
         </nav>
-        <hr>
-    </header>
+
+        {% if session.get('first_name') %}
+            <div style="margin-left: auto; padding-left: 20px;">
+                Hi, {{ session['first_name'] }}!
+            </div>
+        {% endif %}
+    </div>
+
+    <hr>
+</header>
+
 
     <main>
         {% block content %}

@@ -2,12 +2,13 @@ from src.Data.Database import Database
 from datetime import datetime
 
 class Login:
-    def __init__(self, loginid, empid, password, last_reset=None, force_reset=0):
+    def __init__(self, loginid, empid, password, last_reset=None, force_reset=0, emp_role="user"):
         self.__loginid = loginid
         self.__empid = empid
         self.__password = password
         self.__last_reset = last_reset or datetime.now()
         self.__force_reset = force_reset
+        self.__emp_role = emp_role
 
     # Setters
     def set_password(self, new_password):
@@ -35,6 +36,9 @@ class Login:
 
     def get_last_reset(self):
         return self.__last_reset
+
+    def get_role(self):
+        return self.__emp_role
 
     # Save to DB
     def save_to_database(self):
@@ -72,11 +76,9 @@ class Login:
     def get_by_email(email):
         row = Database.get_login_by_email(email)
         if row:
-            return Login(
-                loginid=row[0],
-                empid=row[1],
-                password=row[2],
-                last_reset=row[3],
-                force_reset=row[4]
-            )
+            loginid, empid, password, last_reset, force_reset, emp_role = row
+            login = Login(loginid, empid, password, last_reset, force_reset)
+            login.__emp_role = emp_role  # store role for session later
+            return login
         return None
+
