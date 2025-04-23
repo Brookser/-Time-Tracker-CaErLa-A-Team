@@ -1,0 +1,16 @@
+{% extends "default.html" %}
+{% block title %}Login{% endblock %}
+{% block header %}Login to Time Tracker{% endblock %}
+
+{% block content %}
+    <form method="POST" action="/login">
+        <label for="empid">Employee ID:</label><br>
+        <input type="text" id="empid" name="empid" required><br><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="/create-account">Create one</a></p>
+{% endblock %}
