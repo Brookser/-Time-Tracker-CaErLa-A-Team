@@ -6,6 +6,14 @@ from src.Logic.Login import Login
 from src.Logic.Employee import Employee
 from datetime import datetime
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("empid"):
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -60,6 +68,7 @@ def home():
 #                            entries=entries,
 #                            employees=all_employees)
 @app.route("/report", methods=["GET"])
+@login_required
 def filter_report():
     empid = request.args.get("employee")
     start = request.args.get("start")
