@@ -6,6 +6,9 @@ from src.Logic.Login import Login
 from src.Logic.Employee import Employee
 from datetime import datetime
 
+print("🔎 Server datetime now:", datetime.now())
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -195,6 +198,38 @@ def my_time():
         entries = TimeEntry.get_time_entries_filtered(empid=empid)
 
     return render_template("myTime.html", entries=entries)
+
+
+@app.route("/todays-summary")
+@login_required
+
+def todays_summary():
+    empid = session.get("empid")
+    if not empid:
+        return redirect("/login")
+
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = datetime.now().replace(hour=23, minute=59, second=59)
+
+    entries = TimeEntry.get_time_entries_filtered(
+        empid=empid,
+        start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
+        end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+    # Summarize total time by project
+    for entry in entries:
+        print("🧾 Entry:", entry)
+
+    project_summary = {}
+    for entry in entries:
+        project = entry[3]  # project_name
+        minutes = entry[7]  # total_minutes
+        minutes = int(minutes)  # throws error if minutes not converted to int
+        project_summary[project] = project_summary.get(project, 0) + minutes
+
+    return render_template("todaysSummary.html", entries=entries, project_summary=project_summary)
+
 
 
 
