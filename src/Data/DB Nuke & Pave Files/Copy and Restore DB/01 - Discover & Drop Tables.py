@@ -70,13 +70,13 @@ def drop_all_tables():
 
             for trigger in triggers:
                 print(f"Dropping trigger: {trigger[0]}")
-            cursor.execute(f"DROP TRIGGER IF EXISTS {trigger[0]}")
+                cursor.execute(f"DROP TRIGGER IF EXISTS {trigger[0]}")
 
             # Now drop all tables
             for table in tables:
                 table_name = table[0]
-            print(f"Dropping table: {table_name}")
-            cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+                print(f"Dropping table: {table_name}")
+                cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
 
             print("\nAll tables have been dropped successfully.")
         else:

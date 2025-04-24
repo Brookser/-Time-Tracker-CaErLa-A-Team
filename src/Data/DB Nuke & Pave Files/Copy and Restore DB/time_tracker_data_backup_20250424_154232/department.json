@@ -1,0 +1,7 @@
+[
+  {"DPTID": "D001", "DPT_NAME": "General", "MANAGERID": null, "DPT_ACTIVE": 0},
+  {"DPTID": "ENG", "DPT_NAME": "Engineering", "MANAGERID": "E003", "DPT_ACTIVE": 1},
+  {"DPTID": "FIN", "DPT_NAME": "Finance", "MANAGERID": "TEST01", "DPT_ACTIVE": 1},
+  {"DPTID": "HR", "DPT_NAME": "Human Resources", "MANAGERID": "E001", "DPT_ACTIVE": 1},
+  {"DPTID": "MKT", "DPT_NAME": "Marketing", "MANAGERID": null, "DPT_ACTIVE": 1}
+]
