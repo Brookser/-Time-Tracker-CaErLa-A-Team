@@ -68,6 +68,29 @@ class Database:
         cursor.execute("SELECT EMPID FROM employee_table WHERE DPTID = ?", (dptid,))
         return [row[0] for row in cursor.fetchall()]
 
+    @classmethod
+    def get_visible_employees(cls, current_empid, current_role):
+        cursor = cls.get_cursor()
+
+        if current_role == "admin":
+            cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
+            return cursor.fetchall()
+
+        if current_role == "manager":
+            query = '''
+                SELECT EMPID, FIRST_NAME, LAST_NAME 
+                FROM employee_table 
+                WHERE EMP_ACTIVE = 1 AND (
+                    MGR_EMPID = ? OR 
+                    DPTID = (SELECT DPTID FROM employee_table WHERE EMPID = ?)
+                )
+            '''
+            cursor.execute(query, (current_empid, current_empid))
+            return cursor.fetchall()
+
+        # Individual users don't need a dropdown
+        return []
+
     # ======================
     # 🔹 Project Queries
     # ======================

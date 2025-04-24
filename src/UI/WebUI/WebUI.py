@@ -108,16 +108,23 @@ def filter_report():
         in_dept = Database.get_employees_in_department(dptid)
         all_ids = list(set(managed + in_dept + [session_empid]))
 
-        entries = TimeEntry.get_entries_for_empids(all_ids, start, end)
-        employees = TimeEntry.get_all_employees()
+        # Apply filter only if selected empid is in allowed list
+        if empid and empid in all_ids:
+            filtered_ids = [empid]
+        else:
+            filtered_ids = all_ids
 
-    else:  # will need to add specifics in future sprint
+        entries = TimeEntry.get_entries_for_empids(filtered_ids, start, end)
+        employees = [emp for emp in TimeEntry.get_all_employees() if emp[0] in all_ids]
+
+    else:  # future: customize for other roles like admin/project_manager
         entries = TimeEntry.get_time_entries_filtered(empid, start, end)
         employees = TimeEntry.get_all_employees()
 
     return render_template("report.html",
                            entries=entries,
                            employees=employees)
+
 
 
 
