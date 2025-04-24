@@ -14,18 +14,25 @@
     <nav style="flex-grow: 1;">
         {% if session.get('empid') %}
             <a href="/">Home</a> |
-            <a href="/report">Reporting</a> |
-            <a href="/log-time">Log Time</a> |
 
             {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}
+                <a href="/report">Reporting</a> |
+                <a href="/my-time">My Time</a> |
+                <a href="/log-time">Log Time</a> |
                 <a href="/manage-projects">Projects</a> |
                 <a href="/manage-employees">Employees</a> |
+            {% else %}
+                <a href="/my-time">My Time</a> |
+                <a href="/log-time">Log Time</a> |
             {% endif %}
 
             <a href="/logout">Logout</a>
-        {% elif request.path != '/login' %}
-            <a href="/login">Login</a>
+        {% else %}
+            {% if request.path != '/login' %}
+                <a href="/login">Login</a>
+            {% endif %}
         {% endif %}
+
     </nav>
 
     {% if session.get('first_name') %}
