@@ -1,0 +1,42 @@
+{% extends "default.html" %}
+{% block title %}My Time Entries{% endblock %}
+{% block header %}My Time Entries{% endblock %}
+
+{% block content %}
+    <h2>Filter by Date</h2>
+    <form method="GET" action="/my-time">
+        <label for="start">Start Date:</label>
+        <input type="date" name="start" id="start">
+
+        <label for="end">End Date:</label>
+        <input type="date" name="end" id="end">
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <hr>
+
+    <h2>Entries</h2>
+    {% if entries %}
+        <table>
+            <tr>
+                <th>Project</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Minutes</th>
+                <th>Notes</th>
+            </tr>
+            {% for e in entries %}
+            <tr>
+                <td>{{ e[3] }}</td>
+                <td>{{ e[4] }}</td>
+                <td>{{ e[5] }}</td>
+                <td>{{ e[6] }}</td>
+                <td>{{ e[7] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No entries found for this time range.</p>
+    {% endif %}
+{% endblock %}
