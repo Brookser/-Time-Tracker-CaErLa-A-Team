@@ -45,28 +45,40 @@ def home():
 
     return render_template("index.html", menu_choices=menu_choices)
 
-# @app.route("/report", methods=["GET"])
-# def report_time():
-#     entries = TimeEntry.get_all_entries()
-#     return render_template("report.html", entries=entries)
 
-# @app.route("/reports", methods=["GET"])
-# def reports():
+# @app.route("/report", methods=["GET"])
+# @login_required
+# def filter_report():
 #     empid = request.args.get("employee")
-#     start_date = request.args.get("start")
-#     end_date = request.args.get("end")
+#     start = request.args.get("start")
+#     end = request.args.get("end")
 #
-#     entries = TimeEntry.get_time_entries_filtered(
-#         empid=empid,
-#         start_date=start_date,
-#         end_date=end_date
-#     )
+#     # If any filters are provided, apply them
+#     if start:
+#         start += " 00:00:00"
+#     if end:
+#         end += " 23:59:59"
+#
+#     is_filtering = any([empid, start, end])
+#
+#     if is_filtering:
+#         entries = TimeEntry.get_time_entries_filtered(
+#             empid=empid if empid else None,
+#             start_date=start if start else None,
+#             end_date=end if end else None
+#         )
+#     else:
+#         entries = TimeEntry.get_all_entries()
+#
+#     # Debug print
+#     print("Filters used - empid:", empid, "start:", start, "end:", end)
 #
 #     all_employees = TimeEntry.get_all_employees()
 #
 #     return render_template("report.html",
 #                            entries=entries,
 #                            employees=all_employees)
+
 @app.route("/report", methods=["GET"])
 @login_required
 def filter_report():
@@ -74,31 +86,37 @@ def filter_report():
     start = request.args.get("start")
     end = request.args.get("end")
 
-    # If any filters are provided, apply them
     if start:
         start += " 00:00:00"
     if end:
         end += " 23:59:59"
 
-    is_filtering = any([empid, start, end])
+    emp_role = session.get("emp_role")
+    session_empid = session.get("empid")
 
-    if is_filtering:
-        entries = TimeEntry.get_time_entries_filtered(
-            empid=empid if empid else None,
-            start_date=start if start else None,
-            end_date=end if end else None
-        )
-    else:
-        entries = TimeEntry.get_all_entries()
+    if emp_role == "individual":
+        empid = session_empid
+        entries = TimeEntry.get_time_entries_filtered(empid, start, end)
+        employees = []
 
-    # Debug print
-    print("Filters used - empid:", empid, "start:", start, "end:", end)
+    elif emp_role == "manager":
+        managed = Database.get_employees_managed_by(session_empid)
+        dptid = Database.get_department_of_employee(session_empid)
+        in_dept = Database.get_employees_in_department(dptid)
+        all_ids = list(set(managed + in_dept + [session_empid]))
 
-    all_employees = TimeEntry.get_all_employees()
+        entries = TimeEntry.get_entries_for_empids(all_ids, start, end)
+        employees = TimeEntry.get_all_employees()
+
+    else:  # will need to add specifics in future sprint
+        entries = TimeEntry.get_time_entries_filtered(empid, start, end)
+        employees = TimeEntry.get_all_employees()
 
     return render_template("report.html",
                            entries=entries,
-                           employees=all_employees)
+                           employees=employees)
+
+
 
 @app.route("/create-account", methods=["GET", "POST"])
 def create_account():
@@ -153,6 +171,30 @@ def login():
             return "❌ Invalid email or password."
 
     return render_template("login.html")
+
+
+@app.route("/my-time", methods=["GET"])
+@login_required
+def my_time():
+    empid = session.get("empid")
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    if start:
+        start += " 00:00:00"
+    if end:
+        end += " 23:59:59"
+
+    if start or end:
+        entries = TimeEntry.get_time_entries_filtered(
+            empid=empid,
+            start_date=start if start else None,
+            end_date=end if end else None
+        )
+    else:
+        entries = TimeEntry.get_time_entries_filtered(empid=empid)
+
+    return render_template("myTime.html", entries=entries)
 
 
 

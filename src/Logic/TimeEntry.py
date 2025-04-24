@@ -42,6 +42,7 @@ class TimeEntry:
     def get_total_minutes(self):
         return self.__total_minutes
 
+
     def calculate_total_minutes(self):
         if self.__start_time and self.__stop_time:
             delta = self.__stop_time - self.__start_time
@@ -78,5 +79,10 @@ class TimeEntry:
     @staticmethod
     def get_all_employees():
         return Database.get_active_employees()
+
+    @staticmethod
+    def get_entries_for_empids(empids, start_date=None, end_date=None):
+        return Database.get_time_entries_filtered_multiple_empids(empids, start_date, end_date)
+
 
 
