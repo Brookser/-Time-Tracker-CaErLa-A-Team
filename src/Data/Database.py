@@ -49,6 +49,24 @@ class Database:
         cursor.execute("SELECT * FROM employee_table WHERE EMP_ACTIVE = 1")
         return cursor.fetchall()
 
+    @classmethod
+    def get_employees_managed_by(cls, manager_id):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT EMPID FROM employee_table WHERE MGR_EMPID = ?", (manager_id,))
+        return [row[0] for row in cursor.fetchall()]
+
+    @classmethod
+    def get_department_of_employee(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT DPTID FROM employee_table WHERE EMPID = ?", (empid,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+
+    @classmethod
+    def get_employees_in_department(cls, dptid):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT EMPID FROM employee_table WHERE DPTID = ?", (dptid,))
+        return [row[0] for row in cursor.fetchall()]
 
     # ======================
     # 🔹 Project Queries
@@ -158,13 +176,6 @@ class Database:
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
 
-    # @classmethod
-    # def get_all_time_entries(cls):
-    #     cursor = cls.get_cursor()
-    #     cursor.execute("SELECT * FROM time")
-    #     return cursor.fetchall()
-
-    # same as above using names rather than ids
     @classmethod
     def get_all_time_entries(cls):
         cursor = cls.get_cursor()
@@ -184,34 +195,33 @@ class Database:
         ''')
         return cursor.fetchall()
 
-    # @classmethod
-    # def get_time_entries_filtered(cls, empid=None, start_date=None, end_date=None):
-    #     cursor = cls.get_cursor()
-    #
-    #     query = '''
-    #         SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME,
-    #                t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES
-    #         FROM time t
-    #         JOIN employee_table e ON t.EMPID = e.EMPID
-    #         JOIN projects p ON t.PROJECTID = p.PROJECTID
-    #         WHERE 1=1
-    #     '''
-    #     params = []
-    #
-    #     if empid:
-    #         query += " AND t.EMPID = ?"
-    #         params.append(empid)
-    #
-    #     if start_date:
-    #         query += " AND t.START_TIME >= ?"
-    #         params.append(start_date)
-    #
-    #     if end_date:
-    #         query += " AND t.STOP_TIME <= ?"
-    #         params.append(end_date)
-    #
-    #     cursor.execute(query, params)
-    #     return cursor.fetchall()
+    @classmethod
+    def get_time_entries_filtered_multiple_empids(cls, empids, start_date=None, end_date=None):
+        cursor = cls.get_cursor()
+
+        placeholders = ','.join('?' for _ in empids)
+        query = f'''
+            SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME, 
+                   t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES
+            FROM time t
+            JOIN employee_table e ON t.EMPID = e.EMPID
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE t.EMPID IN ({placeholders})
+        '''
+        params = empids
+
+        if start_date:
+            query += " AND t.START_TIME >= ?"
+            params.append(start_date)
+        if end_date:
+            query += " AND t.STOP_TIME <= ?"
+            params.append(end_date)
+
+        print("🔍 Manager Query:", query)
+        print("📦 Params:", params)
+
+        cursor.execute(query, params)
+        return cursor.fetchall()
 
     @classmethod
     def get_time_entries_filtered(cls, start_date=None, end_date=None, empid=None):
