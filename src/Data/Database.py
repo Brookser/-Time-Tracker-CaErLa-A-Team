@@ -260,14 +260,13 @@ class Database:
         '''
         params = []
 
-        # 🔽 Add each condition individually
-        if start_date:
-            query += " AND t.START_TIME >= ?"
-            params.append(start_date)
+        if start_date and end_date:
+            query += " AND t.START_TIME BETWEEN ? AND ?"
+            params.extend([start_date, end_date])
 
-        if end_date:
-            query += " AND t.STOP_TIME <= ?"
-            params.append(end_date)
+        if empid:
+            query += " AND t.EMPID = ?"
+            params.append(empid)
 
         if empid:
             query += " AND t.EMPID = ?"
