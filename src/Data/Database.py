@@ -199,6 +199,31 @@ class Database:
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
 
+# ****************************
+# written on 4.29.25 - EAB
+# ****************************
+
+    @classmethod
+    def alter_notes(cls, timeid, notes):
+        """
+        Updates only the notes field for an existing time entry.
+
+        Args:
+            timeid: The ID of the time entry to update
+            notes: The new notes text to set
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE time
+            SET NOTES = ?
+            WHERE ID = ?
+        ''', (notes, timeid))
+        cls.commit()
+
+    # ****************************
+    # end of 4.29.25 update - EAB
+    # ****************************
+
     @classmethod
     def get_all_time_entries(cls):
         cursor = cls.get_cursor()

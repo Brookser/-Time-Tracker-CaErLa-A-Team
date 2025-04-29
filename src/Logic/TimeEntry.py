@@ -63,6 +63,33 @@ class TimeEntry:
             total_minutes=self.__total_minutes
         )
 
+    # ****************************
+    # written on 4.29.25 - EAB
+    # ****************************
+
+    # Update notes for an existing time entry
+    def update_notes(self, timeid, new_notes):
+        """
+        Updates the notes field for an existing time entry.
+
+        Args:
+            timeid: The ID of the time entry to update
+            new_notes: The new notes text to set
+        """
+        print("🧪 Available methods on Database:")
+        print(dir(Database))
+        # Update the instance notes as well
+        self.set_notes(new_notes)
+        # Call the database alter_notes method
+        Database.alter_notes(
+            timeid=timeid,
+            notes=new_notes
+        )
+
+    # ****************************
+    # end of 4.29.25 update - EAB
+    # ****************************
+
     # Static method reporting
     @staticmethod
     def get_all_entries():
