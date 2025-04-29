@@ -204,21 +204,23 @@ class Database:
 # ****************************
 
     @classmethod
-    def alter_notes(cls, timeid, notes):
+    def update_notes(self, timeid, new_notes):
         """
-        Updates only the notes field for an existing time entry.
+        Updates the notes field for an existing time entry.
 
         Args:
             timeid: The ID of the time entry to update
-            notes: The new notes text to set
+            new_notes: The new notes text to set
         """
-        cursor = cls.get_cursor()
-        cursor.execute('''
-            UPDATE time
-            SET NOTES = ?
-            WHERE ID = ?
-        ''', (notes, timeid))
-        cls.commit()
+        print("🧪 Available methods on Database:")
+        print(dir(Database))
+        # Update the instance notes as well
+        self.set_notes(new_notes)
+        # Call the database alter_notes method
+        Database.alter_notes(
+            timeid=timeid,
+            notes=new_notes
+        )
 
     # ****************************
     # end of 4.29.25 update - EAB
