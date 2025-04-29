@@ -66,6 +66,10 @@ pip install -r requirements.txt
 ```
 pip install tabluate
 pip install prettytable
+pip install flask           ```added on 4.29.25 - WebUI.py dependency```
+pip install datetime        ```added on 4.29.25 - WebUI.py dependency```
+pip install functools       ```added on 4.29.25 - WebUI.py dependency```
+pip install wrap            ```added on 4.29.25 - WebUI.py dependency```
 
 </details>
 
