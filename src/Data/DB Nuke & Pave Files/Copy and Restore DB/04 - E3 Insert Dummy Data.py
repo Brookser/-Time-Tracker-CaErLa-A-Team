@@ -109,12 +109,12 @@ def populate_additional_data():
         # Step 1: Insert departments (from image 2)
         print("\nPopulating department table...")
         departments = [
-            ('FIN', 'Training', 'E901', 1),
-            ('DEV', 'Business Development', 'E925', 1),
-            ('SVCS', 'Services', 'E907', 1),
-            ('R&D', 'Research and Development', 'E925', 1),
-            ('LEG', 'Legal', 'E905', 1),
-            ('SUP', 'Support', 'E914', 1)
+            ('FIN', 'Training', 'E9001', 1),
+            ('DEV', 'Business Development', 'E9025', 1),
+            ('SVCS', 'Services', 'E9007', 1),
+            ('R&D', 'Research and Development', 'E9025', 1),
+            ('LEG', 'Legal', 'E9005', 1),
+            ('SUP', 'Support', 'E9014', 1)
         ]
 
         for dept in departments:
@@ -130,31 +130,31 @@ def populate_additional_data():
         # Step 2: Insert employees (from image 2)
         print("\nPopulating employee_table...")
         employees = [
-            ('E9003', 'Elwin', 'Klagseman', 'FIN', 'eklagseman@free.fr', 'E905', 1, 'individual'),
-            ('E9004', 'Archibald', 'Bemet', 'HR', 'abemet@jamaizone.com', 'E906', 1, 'individual'),
-            ('E9005', 'Othello', 'Bessey', 'HR', 'obessey@jdjakla.ca', 'E906', 1, 'individual'),
+            ('E9003', 'Elwin', 'Klagseman', 'FIN', 'eklagseman@free.fr', 'E9005', 1, 'individual'),
+            ('E9004', 'Archibald', 'Bemet', 'HR', 'abemet@jamaizone.com', 'E9006', 1, 'individual'),
+            ('E9005', 'Othello', 'Bessey', 'HR', 'obessey@jdjakla.ca', 'E9006', 1, 'individual'),
             ('E9006', 'Godfrey', 'Gaye', 'HR', 'ggaye7@mashable.com', 'NULL', 1, 'manager'),
-            ('E9010', 'Dannie', 'Montgomery', 'FIN', 'dmontgomery5@acgmail.org', 'E911', 1, 'individual'),
+            ('E9010', 'Dannie', 'Montgomery', 'FIN', 'dmontgomery5@acgmail.org', 'E9011', 1, 'individual'),
             ('E9011', 'Gaby', 'Pfilzaclea', 'FIN', 'gpfilzaclea9@prweb.com', 'NULL', 1, 'manager'),
-            ('E9017', 'Kenny', 'Scardifeild', 'FIN', 'kscardifeild@umekis.jp', 'E911', 0, 'individual'),
-            ('E9019', 'Heran', 'Clee', 'DEV', 'hcleee@google.it', 'E925', 1, 'individual'),
-            ('E9021', 'Husein', 'Barker', 'DEV', 'hbarker4@tmyiplc.com', 'E925', 1, 'individual'),
-            ('E9022', 'Chantalle', 'Godall', 'DEV', 'cgodall1@eahymail.co.uk', 'E925', 1, 'individual'),
+            ('E9017', 'Kenny', 'Scardifeild', 'FIN', 'kscardifeild@umekis.jp', 'E0911', 0, 'individual'),
+            ('E9019', 'Heran', 'Clee', 'DEV', 'hcleee@google.it', 'E9025', 1, 'individual'),
+            ('E9021', 'Husein', 'Barker', 'DEV', 'hbarker4@tmyiplc.com', 'E9025', 1, 'individual'),
+            ('E9022', 'Chantalle', 'Godall', 'DEV', 'cgodall1@eahymail.co.uk', 'E9025', 1, 'individual'),
             ('E9007', 'Angelia', 'Favell', 'SVCS', 'afavella@hostgator.com', 'NULL', 1, 'manager'),
-            ('E9008', 'Aundrea', 'Abela', 'SVCS', 'aabelak@lycos.com', 'E907', 0, 'individual'),
-            ('E9009', 'Gilles', 'Shaylor', 'SVCS', 'gshaylorl@ezinearticles.com', 'E907', 1, 'individual'),
-            ('E9018', 'Charlena', 'Drydell', 'R&D', 'cdrydall@mapyx.cz', 'E925', 1, 'project_manager'),
-            ('E9020', 'Dane', 'Eynald', 'R&D', 'deynald@ning.com', 'E925', 0, 'project_manager'),
-            ('E9001', 'Lane', 'Beere', 'LEG', 'lbeere@rakuten.co.jp', 'E902', 1, 'individual'),
+            ('E9008', 'Aundrea', 'Abela', 'SVCS', 'aabelak@lycos.com', 'E9007', 0, 'individual'),
+            ('E9009', 'Gilles', 'Shaylor', 'SVCS', 'gshaylorl@ezinearticles.com', 'E9007', 1, 'individual'),
+            ('E9018', 'Charlena', 'Drydell', 'R&D', 'cdrydall@mapyx.cz', 'E9025', 1, 'project_manager'),
+            ('E9020', 'Dane', 'Eynald', 'R&D', 'deynald@ning.com', 'E9025', 0, 'project_manager'),
+            ('E9001', 'Lane', 'Beere', 'LEG', 'lbeere@rakuten.co.jp', 'E9002', 1, 'individual'),
             ('E9002', 'Bobina', 'Windless', 'LEG', 'bwindless8@census.gov', 'NULL', 1, 'manager'),
-            ('E9024', 'Hilliard', 'Bredell', 'LEG', 'hbredell@aol.com', 'E902', 1, 'individual'),
+            ('E9024', 'Hilliard', 'Bredell', 'LEG', 'hbredell@aol.com', 'E9002', 1, 'individual'),
             ('E9025', 'Bert', 'Wartock', 'LEG', 'bwartockn@techcrunch.com', 'NULL', 1, 'manager'),
             ('E9012', 'Doti', 'Le Moucheux', 'FIN', 'dlemoucheux@skype.com', 'NULL', 1, 'manager'),
-            ('E9013', 'Freeman', 'Jobbins', 'FIN', 'fjobbins@ning.com', 'E912', 1, 'individual'),
-            ('E9023', 'Hamid', 'Klouz', 'FIN', 'hklouz5@nifeatlantiic.com', 'E912', 1, 'individual'),
+            ('E9013', 'Freeman', 'Jobbins', 'FIN', 'fjobbins@ning.com', 'E9012', 1, 'individual'),
+            ('E9023', 'Hamid', 'Klouz', 'FIN', 'hklouz5@nifeatlantiic.com', 'E9012', 1, 'individual'),
             ('E9014', 'Devy', 'Johanni', 'SUP', 'djohanni2@amazon.co.uk', 'NULL', 1, 'manager'),
-            ('E9015', 'Peg', 'Hawkes', 'SUP', 'phawkes3@blinkist.com', 'E914', 1, 'individual'),
-            ('E9016', 'Christine', 'Pullar', 'SUP', 'cpullarb@state.tx.us', 'E914', 1, 'individual')
+            ('E9015', 'Peg', 'Hawkes', 'SUP', 'phawkes3@blinkist.com', 'E9014', 1, 'individual'),
+            ('E9016', 'Christine', 'Pullar', 'SUP', 'cpullarb@state.tx.us', 'E9014', 1, 'individual')
         ]
 
         for emp in employees:
@@ -176,32 +176,31 @@ def populate_additional_data():
         print("\nPopulating login_table...")
         # Convert the date format from MM/DD/YYYY to YYYY-MM-DD HH:MM:SS
         logins = [
-            ('E9001', 'lbeere', 'password', '2025-04-15 00:00:00', 0),
-            (
-            'E9002', 'bwindless8', 'password', '2025-04-15 00:00:00', 0),
-            ('E9003', 'eklagsemano', 'password', '2025-04-15 00:00:00', 0),
-            ('E9004', 'abemet', 'password', '2025-04-15 00:00:00', 0),
-            ('E9005', 'obesseym', 'password', '2025-04-15 00:00:00', 0),
-            ('E9006', 'ggaye7', 'password', '2025-04-15 00:00:00', 1),
-            ('E9007', 'afavella', 'password', '2025-04-15 00:00:00', 0),
-            ('E9008', 'aabelak', 'password', '2025-04-15 00:00:00', 0),
-            ('E9009', 'gshaylorl', 'password', '2025-04-15 00:00:00', 0),
-            ('E9010', 'dmontgomery5', 'password', '2025-04-15 00:00:00', 0),
-            ('E9011', 'gpfilzaclea9', 'password', '2025-04-15 00:00:00', 0),
-            ('E9012', 'dlemoucheuxs', 'password', '2025-04-15 00:00:00', 0),
-            ('E9013', 'fjobbinsd', 'password', '2025-04-15 00:00:00', 0),
-            ('E9014', 'djohanni2', 'password', '2025-04-15 00:00:00', 0),
-            ('E9015', 'phawkes3', 'password', '2025-04-15 00:00:00',  0),
-            ('E9016', 'cpullarb', 'password', '2025-04-15 00:00:00',  0),
-            ('E9017', 'kscardifeild', 'password', '2025-04-15 00:00:00', 0),
-            ('E9018', 'cdrydall', 'password', '2025-04-15 00:00:00', 0),
-            ('E9019', 'hcleee', 'password', '2025-04-15 00:00:00', 0),
-            ('E9020', 'deynaldf', 'password', '2025-04-15 00:00:00', 0),
-            ('E9021', 'hbarker4', 'password', '2025-04-15 00:00:00', 0),
-            ('E9022', 'cgodall1', 'password', '2025-04-15 00:00:00', 0),
-            ('E9023', 'hklouz5', 'password', '2025-04-15 00:00:00', 0),
-            ('E9024', 'hbredell0', 'password', '2025-04-15 00:00:00', 0),
-            ('E9025', 'bwartockn', 'password', '2025-04-15 00:00:00', 0)
+            ('lbeere', 'E9001', '123', '2025-04-15 00:00:00', 0),
+            ('bwindless8', 'E9002', '123', '2025-04-15 00:00:00', 0),
+            ('eklagsemano', 'E9003', '123', '2025-04-15 00:00:00', 0),
+            ('abemet', 'E9004', '123', '2025-04-15 00:00:00', 0),
+            ('obesseym', 'E9005', '123', '2025-04-15 00:00:00', 0),
+            ('ggaye7', 'E9006', '123', '2025-04-15 00:00:00', 1),
+            ('afavella', 'E9007', '123', '2025-04-15 00:00:00', 0),
+            ('aabelak', 'E9008', '123', '2025-04-15 00:00:00', 0),
+            ('gshaylorl', 'E9009', '123', '2025-04-15 00:00:00', 0),
+            ('dmontgomery5', 'E9010', '123', '2025-04-15 00:00:00', 0),
+            ('gpfilzaclea9', 'E9011', '123', '2025-04-15 00:00:00', 0),
+            ('dlemoucheuxs', 'E9012', '123', '2025-04-15 00:00:00', 0),
+            ('fjobbinsd', 'E9013', '123', '2025-04-15 00:00:00', 0),
+            ('djohanni2', 'E9014', '123', '2025-04-15 00:00:00', 0),
+            ('phawkes3', 'E9015', '123', '2025-04-15 00:00:00', 0),
+            ('cpullarb', 'E9016', '123', '2025-04-15 00:00:00', 0),
+            ('kscardifeild', 'E9017', '123', '2025-04-15 00:00:00', 0),
+            ('cdrydall', 'E9018', '123', '2025-04-15 00:00:00', 0),
+            ('hcleee', 'E9019', '123', '2025-04-15 00:00:00', 0),
+            ('deynaldf', 'E9020', '123', '2025-04-15 00:00:00', 0),
+            ('hbarker4', 'E9021', '123', '2025-04-15 00:00:00', 0),
+            ('cgodall1', 'E9022', '123', '2025-04-15 00:00:00', 0),
+            ('hklouz5', 'E9023', '123', '2025-04-15 00:00:00', 0),
+            ('hbredell0', 'E9024', '123', '2025-04-15 00:00:00', 0),
+            ('bwartockn', 'E9025', '123', '2025-04-15 00:00:00', 0)
         ]
 
         for login in logins:
@@ -280,7 +279,11 @@ def populate_additional_data():
             ('E9019', 'P10020', '2024-10-09 13:38:00', '2024-10-09 15:09:00', 'Fusce posuere', 1),
             ('E9021', 'P10021', '2024-03-26 03:58:00', '2024-03-26 06:12:00', 'In quis justo', 1),
             ('E9024', 'P10024', '2024-10-30 11:00:00', '2024-10-30 11:45:00', 'Maecenas ut', 0),
-            ('E9025', 'P10025', '2025-04-07 03:24:00', '2025-04-07 05:22:00', 'Donec diam', 0)
+            ('E9025', 'P10025', '2025-04-07 03:24:00', '2025-04-07 05:22:00', 'Donec diam', 0),
+            ('TEST01', 'P001', '2025-04-25 09:00:00', '2025-04-25 10:30:00', 'Tess: completed documentation updates', 0),
+            ('TEST01', 'P002', '2025-04-25 11:00:00', '2025-04-25 12:00:00', 'Tess: meeting with project team', 0),
+            ('E012', 'P003', '2025-04-25 08:00:00', '2025-04-25 09:15:00', 'Tom: sprint review session', 0),
+            ('E012', 'P004', '2025-04-25 13:00:00', '2025-04-25 14:00:00', 'Tom: system update prep ', 0)
         ]
 
         for entry in time_entries:
