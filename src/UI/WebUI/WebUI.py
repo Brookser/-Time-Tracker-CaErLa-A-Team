@@ -238,7 +238,81 @@ def todays_summary():
     return render_template("todaysSummary.html", entries=entries, project_summary=project_summary)
 
 
+@app.route("/report-todays-summary")
+@login_required
+def todays_summary_manager():
+    if session.get("emp_role") != "manager":
+        return redirect("/")
 
+    empid = session.get("empid")
+    dptid = Database.get_department_of_employee(empid)
+    managed = Database.get_employees_managed_by(empid)
+    in_dept = Database.get_employees_in_department(dptid)
+    all_ids = list(set(managed + in_dept))
+
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = datetime.now().replace(hour=23, minute=59, second=59)
+    today_start_date = today_start.strftime("%B %d, %Y")
+
+    entries = TimeEntry.get_entries_for_empids(
+        empids=all_ids,
+        start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
+        end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+    summary = {}
+    for entry in entries:
+        emp_name = f"{entry[1]} {entry[2]}"   # first + last
+        project = entry[3]                    # project name
+        minutes = int(entry[7])               # total minutes
+
+        if emp_name not in summary:
+            summary[emp_name] = {}
+
+        summary[emp_name][project] = summary[emp_name].get(project, 0) + minutes
+
+    project_totals = {}
+    for entry in entries:
+        project = entry[3]  # project name
+        minutes = int(entry[7])
+        project_totals[project] = project_totals.get(project, 0) + minutes
+
+    return render_template("managerSummary.html", summary=summary, project_totals=project_totals, today=today_start_date)
+
+
+@app.route("/create-project", methods=["GET", "POST"])
+@login_required
+def create_project():
+    empid = session.get("empid")
+    role = session.get("emp_role")
+
+    if role not in ["manager", "project_manager", "individual"]:
+        return redirect("/")
+
+    if request.method == "POST":
+        name = request.form.get("project_name")
+
+        if not name:
+            return "❌ Project name is required."
+
+        # Generate project ID
+        from uuid import uuid4
+        projectid = f"P_{uuid4().hex[:8]}"  # e.g., P_ab12cd34
+
+        from src.Logic.Project import Project
+        new_project = Project(
+            projectid=projectid,
+            name=name,
+            created_by=empid
+        )
+
+        try:
+            new_project.save_to_database()
+            return redirect("/my-projects")  # We'll add this soon
+        except Exception as e:
+            return f"❌ Error creating project: {e}"
+
+    return render_template("createProject.html")
 
 @app.route("/logout")
 def logout():
