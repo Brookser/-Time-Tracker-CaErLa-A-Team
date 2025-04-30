@@ -7,66 +7,133 @@
 #                   • count number of required password resets
 #                   • retrieve inactive projects from the database
 #                   • projects with a PRIOR_PROJECTID
-#                   • projects with a 4/15/2025 start date
+#                   • projects with a 4/22/2025 start date
 #                   • inactive employees
 #                   • manual time entries
 #                   • time summary by employee
 #                   • project time summary
+# UPDATES:
+#           04.29.2025 - updated script to send results to database_report.txt in addition to showing in console.
+#                           The script that simply shows results in console is still present, however it has been
+#                           commented out of if __name__ == "__main__":
+#                               To run console results only, change which function is called from if __name__ == "__main__":
+#                      - Updated expected output values to align with updates made to Dummy Data
+
 # Input:            none
 # Output:           Expected results as follows:
-#                   • expected resets: 2096	Godfrey	Gaye
-#                   • Inactive Projects
-#                          10005 Blesbok
-#                          10008 Brazilian tapir
-#                          10009 Dog, raccoon
-#                          10014 Goose, andean
-#                          10022 Squirrel, antelope ground
+#                   • Password Reset Required
+#                          2096	Godfrey	Gaye
+
+#                   • Inactive Projects (5 total)
+#                         PROJECTID 	 PROJECT_NAME                   	 CREATED_BY
+#                         P10005    	 Bustard                        	 E9010
+#                         P10008    	 Brazilian tapir                	 E9023
+#                         P10009    	 Dog, raccoon                   	 E9001
+#                         P10014    	 Goose, andean                  	 E9021
+#                         P10022    	 Squirrel, antelope ground      	 E9019
+
 #                   •Projects with PRIOR_PROJECTID
-#                          10015 Goose, greylag
-#                          10016 Greater adjutant stork
-#                          10017 Javan gold-spotted mongoose
-#                          10020 Dog
-#                          10021 Racoon
-#                          10025 Squirrel
-#                   • Projects with 4/15/2025 start date
-#                          10015 Goose, greylag
-#                          10016 Greater adjutant stork
-#                          10017 Javan gold-spotted mongoose
-#                          10020 Dog
-#                          10021 Racoon
-#                          10025 Squirrel
-#                   • Inactive Employees
-#                          2088 Othello Beesey
-#                          2505 Aundrea Abela
-#                          6539 Kenny Scardifeild
-#                          8334 Dane Eynald
-#                   • manual entries = 8
-#                   • EmployeeID	num of entries	Expected Minute Totals
-#                         1094	2	264.96
-#                         1488	2	149.76
-#                         1610	3	205.92
-#                         2088	2	126.72
-#                         2505	4	426.24
+#                         PROJECTID 	 PROJECT_NAME                   	 CREATED_BY 	 DATE_CREATED        	 PRIOR_PROJECTID
+#                         P10015    	 Goose, greylag                 	 E9021      	 2025-04-15 00:00:00 	 P10014
+#                         P10016    	 Greater adjutant stork         	 E9010      	 2025-04-15 00:00:00 	 P10005
+#                         P10017    	 Javan gold-spotted mongoose    	 E9023      	 2025-04-15 00:00:00 	 P10008
+#                         P10020    	 Dog                            	 E9001      	 2025-04-15 00:00:00 	 P10009
+#                         P10021    	 Racoon                         	 E9001      	 2025-04-15 00:00:00 	 P10009
+#                         P10025    	 Squirrel                       	 E9013      	 2025-04-15 00:00:00 	 P10022
+
+#                   • Projects with 4/22/2025 start date
+#                        PROJECTID 	 PROJECT_NAME                   	 CREATED_BY 	 DATE_CREATED        	 PRIOR_PROJECTID 	 PROJECT_ACTIVE
+#                        P004      	 Client Onboarding Flow         	 E007       	 2025-04-22 14:30:00 	 None            	1
+
+#                   • Inactive Employees (total 3)
+#                         EMPID  	 FIRST_NAME 	 LAST_NAME    	 DPTID
+#                         E9008  	 Aundrea    	 Abela        	 SVCS
+#                         E9017  	 Kenny      	 Scardifeild  	 FIN
+#                         E9020  	 Dane       	 Eynald       	 R&D
+
+#                   • Active Department Status Count (active=1 vs. inactive=2; total count =10)
+#                        Row Labels     Count of  DPT_ACTIVE
+#                           0	            1
+#                           1	            9
+#                        Grand Total	    10
+
+#                   • manual entries in time table = 30
+#                        Manual Time Entries:
+#                        ----------------------------------------
+#                        TIMEID          EMPID           PROJECTID
+#                        ----------------------------------------
+#                        1               E001            P001
+#                        2               E001            P001
+#                        3               TEST01          P001
+#                        4               E001            P002
+#                        5               TEST01          P002
+#                        6               E0009           P003
+#                        7               E004            P003
+#                        8               E0009           P001
+#                        9               TEST01          P001
+#                        10              E003            P001
+#                        11              E003            P002
+#                        12              E011            P001
+#                        13              E012            P002
+#                        14              E013            P003
+#                        15              E014            P004
+#                        16              E015            P001
+#                        17              E016            P002
+#                        19              E9003           P10003
+#                        20              E9005           P10005
+#                        22              E9005           P10005
+#                        24              E9006           P10006
+#                        27              E9007           P10009
+#                        28              E9007           P10009
+#                        29              E9011           P10010
+#                        30              E9011           P10011
+#                        32              E9014           P10014
+#                        33              E9015           P10015
+#                        35              E9017           P10017
+#                        37              E9019           P10020
+#                        38              E9021           P10021
+#                        ----------------------------------------
+#                        Total manual time entries: 30
+
+#                   • Roll up for Multiple Time Entries: (total = 9)
+#                        Row Labels	    Name	Count of  EMPID  	Sum of  TOTAL_MINUTES
+#                         TEST01 	     Tess       	5	            360
+#                         E9006  	     Godfrey    	4	            299
+#                         E9007     	 Angelia    	3	            304
+#                         E001   	     Casey      	3	            210
+#                         E012      	 Tom        	3	            195
+#                         E003      	 Yesac      	2	            165
+#                         E9011     	 Gaby       	2	            160
+#                         E0009     	 Liesl      	2	            150
+#                        E9005      	 Othello    	2	            148
+
 #                   • PROJECT_ID totals
-#                         10001	128.16
-#                         10003	128.16
-#                         10005	204.48
-#                         10006	243.36
-#                         10007	56.16
-#                         10009	128.16
-#                         10010	175.68
-#                         10011	97.92
-#                         10012	92.16
-#                         10014	99.36
-#                         10015	138.24
-#                         10016	126.72
-#                         10017	60.48
-#                         10018	142.56
-#                         10020	90.72
-#                         10021	133.92
-#                         10024	44.64
-#                         10025	118.08
-#
+#                        Row Labels	    Project Name	        Sum of  TOTAL_MINUTES
+#                         P10014    	 Goose, andean                  	1539
+#                        P10015      	 Goose, greylag                 	678
+#                         P001      	 Time Tracker DB Testing        	660
+#                         P002      	 Marketing Website Redesign     	375
+#                         P10006    	 Boat-billed heron              	299
+#                         P003      	 Internal Tooling Upgrade       	285
+#                         P10009    	 Dog, raccoon                   	248
+#                         P10005    	 Bustard                        	148
+#                         P10018    	 Legaan, Monitor (unidentified) 	142
+#                         P10021    	 Racoon                         	134
+#                         P10001    	 Andean goose                   	129
+#                         P10016    	 Greater adjutant stork         	126
+#                         P004      	 Client Onboarding Flow         	120
+#                         P10025    	 Squirrel                       	118
+#                         P10011    	 Flamingo, greater              	98
+#                         P10012    	 Frilled dragon                 	92
+#                         P10020    	 Dog                            	91
+#                         P10003    	 Argalis                        	74
+#                         P10010    	 Dolphin, striped               	62
+#                         P10017    	 Javan gold-spotted mongoose    	60
+#                         P10007    	 Bottle-nose dolphin            	56
+#                         P10024    	 Vulture, oriental white-backed 	45
+
+
+
 # **********************************************************************************************************************
 # **********************************************************************************************************************
 # !/usr/bin/env python3
@@ -84,6 +151,20 @@ import logging
 from typing import List, Dict, Any
 import mariadb
 from dotenv import load_dotenv
+import datetime
+
+class CustomWriter:
+    def __init__(self, file):
+        self.file = file
+        self.terminal = sys.stdout
+
+    def write(self, message):
+        self.file.write(message)
+        self.terminal.write(message)
+
+    def flush(self):
+        self.file.flush()
+        self.terminal.flush()
 
 # Set up logging
 logging.basicConfig(
@@ -300,7 +381,7 @@ def get_projects_with_prior() -> List[Dict[str, Any]]:
         return []
 
 
-def get_projects_created_on_date(target_date: str = "2025-04-15") -> List[Dict[str, Any]]:
+def get_projects_created_on_date(target_date: str = "2025-04-22") -> List[Dict[str, Any]]:
     """
     Retrieve all projects created on the specified date.
 
@@ -808,8 +889,59 @@ def run_all_tests():
     get_project_time_summary()
 
 
-if __name__ == "__main__":
-    run_all_tests()
+def save_results_to_txt():
+    """
+    Run all queries and save results to a single text file.
+    """
+    # Create a file to save all results
+    with open('database_report.txt', 'w') as file:
+        # Write a header for the report
+        file.write("DATABASE QUERY RESULTS REPORT\n")
+        file.write("============================\n\n")
+        file.write(f"Report generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+
+        # Redirect stdout to capture print output
+        original_stdout = sys.stdout
+        sys.stdout = CustomWriter(file)
+
+        try:
+            # Run each function
+            file.write("\n=== Force Reset Logins ===\n")
+            get_force_reset_logins()
+
+            file.write("\n=== Inactive Projects ===\n")
+            get_inactive_projects()
+
+            file.write("\n=== Projects with Prior Versions ===\n")
+            get_projects_with_prior()
+
+            file.write("\n=== Projects Created on April 15, 2025 ===\n")
+            get_projects_created_on_date()
+
+            file.write("\n=== Inactive Employees ===\n")
+            get_inactive_employees()
+
+            file.write("\n=== Department Status Count ===\n")
+            get_department_active_count()
+
+            file.write("\n=== Manual Time Entries ===\n")
+            get_manual_time_entries()
+
+            file.write("\n=== Employee Time Summary ===\n")
+            get_employee_time_summary()
+
+            file.write("\n=== Project Time Summary ===\n")
+            get_project_time_summary()
+
+        finally:
+            # Restore stdout
+            sys.stdout = original_stdout
+
+    print(f"All results have been saved to database_report.txt")
+
+if __name__ == "__main__":   #use one or the other of the below statements; comment out the other
+    # run_all_tests()
+    save_results_to_txt()
 
 # **********************************************************************************************************************
 # **********************************************************************************************************************

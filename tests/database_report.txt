@@ -1,0 +1,278 @@
+DATABASE QUERY RESULTS REPORT
+============================
+
+Report generated on: 2025-04-29 20:10:02
+
+
+=== Force Reset Logins ===
+Accounts requiring password reset:
+----------------------------------
+ggaye7
+
+=== Inactive Projects ===
+
+Inactive Projects:
+----------------------------------------------------------------------------------------------------
+PROJECT ID      PROJECT NAME                             CREATED BY                     DATE CREATED        
+----------------------------------------------------------------------------------------------------
+P10008          Brazilian tapir                          Hamid Klouz                    2025-04-01 00:00:00 
+P10005          Bustard                                  Dannie Montgomery              2025-04-01 00:00:00 
+P10009          Dog, raccoon                             Lane Beere                     2025-04-01 00:00:00 
+P10014          Goose, andean                            Husein Barker                  2025-04-01 00:00:00 
+P10022          Squirrel, antelope ground                Heran Clee                     2025-04-01 00:00:00 
+----------------------------------------------------------------------------------------------------
+
+=== Projects with Prior Versions ===
+
+Projects with Prior Versions:
+--------------------------------------------------------------------------------------------------------------
+PROJECT ID      PROJECT NAME                        PRIOR PROJECT ID PRIOR PROJECT NAME                 
+--------------------------------------------------------------------------------------------------------------
+P10016          Greater adjutant stork              P10005          Bustard                            
+    Created by: Dannie Montgomery | Date: 2025-04-15 00:00:00 | Status: Active
+--------------------------------------------------------------------------------------------------------------
+P10017          Javan gold-spotted mongoose         P10008          Brazilian tapir                    
+    Created by: Hamid Klouz | Date: 2025-04-15 00:00:00 | Status: Active
+--------------------------------------------------------------------------------------------------------------
+P10020          Dog                                 P10009          Dog, raccoon                       
+    Created by: Lane Beere | Date: 2025-04-15 00:00:00 | Status: Active
+--------------------------------------------------------------------------------------------------------------
+P10021          Racoon                              P10009          Dog, raccoon                       
+    Created by: Lane Beere | Date: 2025-04-15 00:00:00 | Status: Active
+--------------------------------------------------------------------------------------------------------------
+P10015          Goose, greylag                      P10014          Goose, andean                      
+    Created by: Husein Barker | Date: 2025-04-15 00:00:00 | Status: Active
+--------------------------------------------------------------------------------------------------------------
+P10025          Squirrel                            P10022          Squirrel, antelope ground          
+    Created by: Freeman Jobbins | Date: 2025-04-15 00:00:00 | Status: Active
+--------------------------------------------------------------------------------------------------------------
+Total projects with prior versions: 6
+
+=== Projects Created on April 15, 2025 ===
+
+Projects created on 2025-04-22:
+----------------------------------------------------------------------------------------------------
+PROJECT ID      PROJECT NAME                             CREATED BY                     TIME CREATED        
+----------------------------------------------------------------------------------------------------
+P004            Client Onboarding Flow                   Jack White                     2025-04-22 14:30:00 
+----------------------------------------------------------------------------------------------------
+Total projects created on 2025-04-22: 1
+
+=== Inactive Employees ===
+
+Inactive Employees:
+----------------------------------------------------------------------------------------------------
+EMPLOYEE ID     NAME                           EMAIL                               DEPARTMENT          
+----------------------------------------------------------------------------------------------------
+E9008           Aundrea Abela                  aabelak@lycos.com                   Services            
+    Manager: Angelia Favell
+E9020           Dane Eynald                    deynald@ning.com                    Research and Development
+    Manager: Bert Wartock
+E9017           Kenny Scardifeild              kscardifeild@umekis.jp              Finance             
+    Manager: None
+----------------------------------------------------------------------------------------------------
+Total inactive employees: 3
+
+=== Department Status Count ===
+Department Status Summary:
+--------------------------------------------------
+Total departments: 10
+Active departments (DPT_ACTIVE = TRUE): 9
+Inactive departments (DPT_ACTIVE = FALSE): 1
+Null status departments (DPT_ACTIVE = NULL): 0
+--------------------------------------------------
+
+=== Manual Time Entries ===
+Manual Time Entries:
+----------------------------------------
+TIMEID          EMPID           PROJECTID      
+----------------------------------------
+1               E001            P001           
+2               E001            P001           
+3               TEST01          P001           
+4               E001            P002           
+5               TEST01          P002           
+6               E0009           P003           
+7               E004            P003           
+8               E0009           P001           
+9               TEST01          P001           
+10              E003            P001           
+11              E003            P002           
+12              E011            P001           
+13              E012            P002           
+14              E013            P003           
+15              E014            P004           
+16              E015            P001           
+17              E016            P002           
+19              E9003           P10003         
+20              E9005           P10005         
+22              E9005           P10005         
+24              E9006           P10006         
+27              E9007           P10009         
+28              E9007           P10009         
+29              E9011           P10010         
+30              E9011           P10011         
+32              E9014           P10014         
+33              E9015           P10015         
+35              E9017           P10017         
+37              E9019           P10020         
+38              E9021           P10021         
+----------------------------------------
+Total manual time entries: 30
+
+=== Employee Time Summary ===
+Employees with Multiple Time Entries:
+----------------------------------------------------------------------------------------------------
+EMPLOYEE ID     EMPLOYEE NAME                  ENTRIES    TOTAL MINUTES   HOURS     
+----------------------------------------------------------------------------------------------------
+TEST01          Tess Tester                    5          360             6.00      
+    First entry: 2025-04-21 10:00:00 | Last entry: 2025-04-25 11:00:00
+    Project breakdown:
+    - Time Tracker DB Testing                 : 3 entries, 240 mins (4.00 hrs), 66.67%
+    - Marketing Website Redesign              : 2 entries, 120 mins (2.00 hrs), 33.33%
+----------------------------------------------------------------------------------------------------
+E9006           Godfrey Gaye                   4          299             4.98      
+    First entry: 2024-05-29 07:58:00 | Last entry: 2025-01-24 03:11:00
+    Project breakdown:
+    - Boat-billed heron                       : 4 entries, 299 mins (4.98 hrs), 100.00%
+----------------------------------------------------------------------------------------------------
+E9007           Angelia Favell                 3          304             5.07      
+    First entry: 2024-03-10 19:27:00 | Last entry: 2024-06-23 21:55:00
+    Project breakdown:
+    - Dog, raccoon                            : 2 entries, 248 mins (4.13 hrs), 81.58%
+    - Bottle-nose dolphin                     : 1 entries, 56 mins (0.93 hrs), 18.42%
+----------------------------------------------------------------------------------------------------
+E001            Casey Hill                     3          210             3.50      
+    First entry: 2025-04-19 20:58:08 | Last entry: 2025-04-22 13:00:00
+    Project breakdown:
+    - Time Tracker DB Testing                 : 2 entries, 150 mins (2.50 hrs), 71.43%
+    - Marketing Website Redesign              : 1 entries, 60 mins (1.00 hrs), 28.57%
+----------------------------------------------------------------------------------------------------
+E012            Tom Lee                        3          195             3.25      
+    First entry: 2025-04-24 10:00:00 | Last entry: 2025-04-25 13:00:00
+    Project breakdown:
+    - Internal Tooling Upgrade                : 1 entries, 75 mins (1.25 hrs), 38.46%
+    - Marketing Website Redesign              : 1 entries, 60 mins (1.00 hrs), 30.77%
+    - Client Onboarding Flow                  : 1 entries, 60 mins (1.00 hrs), 30.77%
+----------------------------------------------------------------------------------------------------
+E003            Yesac Llih                     2          165             2.75      
+    First entry: 2025-04-23 09:00:00 | Last entry: 2025-04-24 13:00:00
+    Project breakdown:
+    - Time Tracker DB Testing                 : 1 entries, 90 mins (1.50 hrs), 54.55%
+    - Marketing Website Redesign              : 1 entries, 75 mins (1.25 hrs), 45.45%
+----------------------------------------------------------------------------------------------------
+E9011           Gaby Pfilzaclea                2          160             2.67      
+    First entry: 2025-01-23 01:01:00 | Last entry: 2025-02-13 04:19:00
+    Project breakdown:
+    - Flamingo, greater                       : 1 entries, 98 mins (1.63 hrs), 61.25%
+    - Dolphin, striped                        : 1 entries, 62 mins (1.03 hrs), 38.75%
+----------------------------------------------------------------------------------------------------
+E0009           Liesl Hill                     2          150             2.50      
+    First entry: 2025-04-23 09:00:00 | Last entry: 2025-04-24 04:52:06
+    Project breakdown:
+    - Internal Tooling Upgrade                : 1 entries, 90 mins (1.50 hrs), 60.00%
+    - Time Tracker DB Testing                 : 1 entries, 60 mins (1.00 hrs), 40.00%
+----------------------------------------------------------------------------------------------------
+E9005           Othello Bessey                 2          148             2.47      
+    First entry: 2024-04-14 04:01:00 | Last entry: 2025-03-11 09:51:00
+    Project breakdown:
+    - Bustard                                 : 2 entries, 148 mins (2.47 hrs), 100.00%
+----------------------------------------------------------------------------------------------------
+Total employees with multiple entries: 9
+
+=== Project Time Summary ===
+Project Time Summary:
+----------------------------------------------------------------------------------------------------
+PROJECT ID      PROJECT NAME                             ENTRIES    TOTAL MINUTES   HOURS     
+----------------------------------------------------------------------------------------------------
+P10014          Goose, andean                            1          1539            25.65     
+    Date range: 2025-04-05 09:30:00 to 2025-04-05 09:30:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10015          Goose, greylag                           1          678             11.30     
+    Date range: 2024-08-07 08:32:00 to 2024-08-07 08:32:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P001            Time Tracker DB Testing                  9          660             11.00     
+    Date range: 2025-04-19 20:58:08 to 2025-04-25 09:00:00
+    Employees involved: 6
+----------------------------------------------------------------------------------------------------
+P002            Marketing Website Redesign               6          375             6.25      
+    Date range: 2025-04-22 13:00:00 to 2025-04-25 11:00:00
+    Employees involved: 5
+----------------------------------------------------------------------------------------------------
+P10006          Boat-billed heron                        4          299             4.98      
+    Date range: 2024-05-29 07:58:00 to 2025-01-24 03:11:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P003            Internal Tooling Upgrade                 4          285             4.75      
+    Date range: 2025-04-23 09:00:00 to 2025-04-25 08:00:00
+    Employees involved: 4
+----------------------------------------------------------------------------------------------------
+P10009          Dog, raccoon                             2          248             4.13      
+    Date range: 2024-03-10 19:27:00 to 2024-06-22 06:15:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10005          Bustard                                  2          148             2.47      
+    Date range: 2024-04-14 04:01:00 to 2025-03-11 09:51:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10018          Legaan, Monitor (unidentified)           1          142             2.37      
+    Date range: 2025-02-05 02:50:00 to 2025-02-05 02:50:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10021          Racoon                                   1          134             2.23      
+    Date range: 2024-03-26 03:58:00 to 2024-03-26 03:58:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10001          Andean goose                             1          129             2.15      
+    Date range: 2024-04-05 09:50:00 to 2024-04-05 09:50:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10016          Greater adjutant stork                   1          126             2.10      
+    Date range: 2025-02-04 08:28:00 to 2025-02-04 08:28:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P004            Client Onboarding Flow                   2          120             2.00      
+    Date range: 2025-04-24 12:00:00 to 2025-04-25 13:00:00
+    Employees involved: 2
+----------------------------------------------------------------------------------------------------
+P10025          Squirrel                                 1          118             1.97      
+    Date range: 2025-04-07 03:24:00 to 2025-04-07 03:24:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10011          Flamingo, greater                        1          98              1.63      
+    Date range: 2025-02-13 04:19:00 to 2025-02-13 04:19:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10012          Frilled dragon                           1          92              1.53      
+    Date range: 2024-06-15 19:12:00 to 2024-06-15 19:12:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10020          Dog                                      1          91              1.52      
+    Date range: 2024-10-09 13:38:00 to 2024-10-09 13:38:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10003          Argalis                                  1          74              1.23      
+    Date range: 2024-12-09 16:47:00 to 2024-12-09 16:47:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10010          Dolphin, striped                         1          62              1.03      
+    Date range: 2025-01-23 01:01:00 to 2025-01-23 01:01:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10017          Javan gold-spotted mongoose              1          60              1.00      
+    Date range: 2025-03-31 13:09:00 to 2025-03-31 13:09:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10007          Bottle-nose dolphin                      1          56              0.93      
+    Date range: 2024-06-23 21:55:00 to 2024-06-23 21:55:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+P10024          Vulture, oriental white-backed           1          45              0.75      
+    Date range: 2024-10-30 11:00:00 to 2024-10-30 11:00:00
+    Employees involved: 1
+----------------------------------------------------------------------------------------------------
+Total time across all projects: 5579 minutes (92.98 hours)
+Total number of time entries: 44
+Total number of projects with time entries: 22
