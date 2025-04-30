@@ -1,0 +1,19 @@
+{% extends "default.html" %}
+{% block title %}My Projects{% endblock %}
+{% block header %}My Projects{% endblock %}
+
+{% block content %}
+    <h2>Your Projects</h2>
+
+    {% if projects %}
+        <ul>
+            {% for pid, name in projects %}
+                <li><strong>{{ name }}</strong> (ID: {{ pid }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't created any projects yet.</p>
+    {% endif %}
+
+    <a href="/create-project"><button>Create Another Project</button></a>
+{% endblock %}

@@ -314,6 +314,21 @@ def create_project():
 
     return render_template("createProject.html")
 
+@app.route("/my-projects")
+@login_required
+def my_projects():
+    empid = session.get("empid")
+    all_projects = Database.get_all_projects()  # This returns (PROJECTID, PROJECT_NAME)
+
+    # Filter to only show user's own projects
+    my_projects = [
+        (pid, name) for pid, name in all_projects
+        if Database.get_project_created_by(pid) == empid
+    ]
+
+    return render_template("myProjects.html", projects=my_projects)
+
+
 @app.route("/logout")
 def logout():
     session.clear()

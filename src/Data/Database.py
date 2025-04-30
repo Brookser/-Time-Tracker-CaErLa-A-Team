@@ -119,6 +119,13 @@ class Database:
         cursor.execute("SELECT PROJECTID, PROJECT_NAME FROM projects WHERE PROJECT_ACTIVE = 1")
         return cursor.fetchall()
 
+    @classmethod
+    def get_project_created_by(cls, projectid):
+        cursor = cls.get_cursor()
+        cursor.execute("SELECT CREATED_BY FROM projects WHERE PROJECTID = ?", (projectid,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+
 
     # ======================
     # 🔹 Department Queries
