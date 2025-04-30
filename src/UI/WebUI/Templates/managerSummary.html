@@ -1,0 +1,30 @@
+{% extends "default.html" %}
+{% block title %}Manager - Today's Summary{% endblock %}
+{% block header %}Today's Summary - Your Team{% endblock %}
+
+{% block content %}
+    <h2> {{ today }} </h2>
+    {% if summary %}
+        {% for emp, projects in summary.items() %}
+            <h4>{{ emp }}</h4>
+            <ul>
+                {% for project, minutes in projects.items() %}
+                    <li>{{ project }}: {{ minutes }} minutes</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p>No time entries found for your team today.</p>
+    {% endif %}
+    <hr>
+    <h3>Total Time by Project</h3>
+    {% if project_totals %}
+        <ul>
+            {% for project, total in project_totals.items() %}
+                <li>{{ project }}: {{ total }} minutes</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No project time logged today.</p>
+    {% endif %}
+{% endblock %}
