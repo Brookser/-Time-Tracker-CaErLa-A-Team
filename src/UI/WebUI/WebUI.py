@@ -15,11 +15,13 @@ def login_required(f):
         if not session.get("empid"):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
+
     return decorated_function
 
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
 
 # @app.route("/")
 # def home():
@@ -126,8 +128,6 @@ def filter_report():
                            employees=employees)
 
 
-
-
 @app.route("/create-account", methods=["GET", "POST"])
 def create_account():
     if request.method == "POST":
@@ -154,7 +154,7 @@ def create_account():
             return f"❌ Error creating login: {e}"
 
         # return redirect("/")  # or render_template("account_created.html")
-        return redirect("/login") # test redirect to login
+        return redirect("/login")  # test redirect to login
 
     return render_template("createAccount.html")
 
@@ -209,7 +209,6 @@ def my_time():
 
 @app.route("/todays-summary")
 @login_required
-
 def todays_summary():
     empid = session.get("empid")
     if not empid:
@@ -262,9 +261,9 @@ def todays_summary_manager():
 
     summary = {}
     for entry in entries:
-        emp_name = f"{entry[1]} {entry[2]}"   # first + last
-        project = entry[3]                    # project name
-        minutes = int(entry[7])               # total minutes
+        emp_name = f"{entry[1]} {entry[2]}"  # first + last
+        project = entry[3]  # project name
+        minutes = int(entry[7])  # total minutes
 
         if emp_name not in summary:
             summary[emp_name] = {}
@@ -277,7 +276,8 @@ def todays_summary_manager():
         minutes = int(entry[7])
         project_totals[project] = project_totals.get(project, 0) + minutes
 
-    return render_template("managerSummary.html", summary=summary, project_totals=project_totals, today=today_start_date)
+    return render_template("managerSummary.html", summary=summary, project_totals=project_totals,
+                           today=today_start_date)
 
 
 @app.route("/create-project", methods=["GET", "POST"])
@@ -314,6 +314,7 @@ def create_project():
 
     return render_template("createProject.html")
 
+
 @app.route("/my-projects")
 @login_required
 def my_projects():
@@ -327,6 +328,7 @@ def my_projects():
     ]
 
     return render_template("myProjects.html", projects=my_projects)
+
 
 @app.route("/manage-projects")
 @login_required
