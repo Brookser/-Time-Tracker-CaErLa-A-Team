@@ -3,18 +3,29 @@
 {% block header %}Your Projects{% endblock %}
 
 {% block content %}
-    <h2>Projects You Created</h2>
+    <a href="/create-project"><button>Create New Project</button></a>
+    <hr>
 
-    {% if projects %}
+    <h2>Team Projects You're Assigned To</h2>
+    {% if assigned %}
         <ul>
-            {% for pid, name in projects %}
+            {% for pid, name in assigned %}
+                <li><strong>{{ name }}</strong> (ID: {{ pid }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You are not assigned to any team projects.</p>
+    {% endif %}
+
+    <hr>
+    <h2>Projects You Created</h2>
+    {% if created %}
+        <ul>
+            {% for pid, name in created %}
                 <li><strong>{{ name }}</strong> (ID: {{ pid }})</li>
             {% endfor %}
         </ul>
     {% else %}
         <p>You haven't created any projects yet.</p>
     {% endif %}
-
-    <br>
-    <a href="/create-project"><button>Create New Project</button></a>
 {% endblock %}

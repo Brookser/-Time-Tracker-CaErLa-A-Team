@@ -308,6 +308,7 @@ def create_project():
 
         try:
             new_project.save_to_database()
+            Database.add_employee_to_project(projectid, empid)
             return redirect("/my-projects")  # We'll add this soon
         except Exception as e:
             return f"❌ Error creating project: {e}"
@@ -334,15 +335,23 @@ def my_projects():
 @login_required
 def manage_projects():
     empid = session.get("empid")
-    role = session.get("emp_role")
 
-    all_projects = Database.get_all_projects()
-    my_projects = [
-        (pid, name) for pid, name in all_projects
+    # Projects created by the user
+    created = [
+        (pid, name) for pid, name in Database.get_all_projects()
         if Database.get_project_created_by(pid) == empid
     ]
 
-    return render_template("manageProjects.html", projects=my_projects)
+    # Projects assigned to the user (from employee_projects)
+    assigned_ids = Database.get_project_ids_for_employee(empid)
+
+    # Get details for assigned projects (excluding ones they created)
+    assigned = [
+        (pid, name) for pid, name in Database.get_all_projects()
+        if pid in assigned_ids and Database.get_project_created_by(pid) != empid
+    ]
+
+    return render_template("manageProjects.html", created=created, assigned=assigned)
 
 
 @app.route("/logout")
