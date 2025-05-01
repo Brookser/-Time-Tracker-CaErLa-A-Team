@@ -1,0 +1,51 @@
+{% extends "default.html" %}
+{% block title %}Project Report{% endblock %}
+{% block header %}Project-Specific Report{% endblock %}
+
+{% block content %}
+    <form method="POST" action="/project-report">
+        <label for="project_id">Select a Project:</label>
+        <select name="project_id" id="project_id" required>
+            <option value="">-- Select a Project --</option>
+            {% for pid, name in projects %}
+                <option value="{{ pid }}" {% if pid == selected_project %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="start">Start Date:</label>
+        <input type="date" name="start" id="start" value="{{ request.form.get('start', '') }}">
+
+        <label for="end">End Date:</label>
+        <input type="date" name="end" id="end" value="{{ request.form.get('end', '') }}">
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <hr>
+
+    {% if entries %}
+        <h2>Time Entries</h2>
+        <table>
+            <tr>
+                <th>Employee</th>
+                <th>Project</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Minutes</th>
+                <th>Notes</th>
+            </tr>
+            {% for e in entries %}
+            <tr>
+                <td>{{ e[1] }} {{ e[2] }}</td>
+                <td>{{ e[3] }}</td>
+                <td>{{ e[4] }}</td>
+                <td>{{ e[5] }}</td>
+                <td>{{ e[6] }}</td>
+                <td>{{ e[7] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% elif selected_project %}
+        <p>No time entries found for the selected project and dates.</p>
+    {% endif %}
+{% endblock %}

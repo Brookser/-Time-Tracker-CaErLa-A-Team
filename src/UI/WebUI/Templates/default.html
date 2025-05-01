@@ -15,16 +15,25 @@
         {% if session.get('empid') %}
             <a href="/">Home</a> |
 
-            {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}
+            {% if session['emp_role'] == 'manager' %}
                 <a href="/report">Reporting</a> |
                 <a href="/my-time">My Time</a> |
                 <a href="/log-time">Log Time</a> |
                 <a href="/manage-projects">Projects</a> |
                 <a href="/manage-employees">Employees</a> |
-            {% else %}
+
+            {% elif session['emp_role'] == 'project_manager' %}
+                <a href="/project-report">Project Report</a> |
                 <a href="/my-time">My Time</a> |
                 <a href="/log-time">Log Time</a> |
                 <a href="/manage-projects">Projects</a> |
+
+            {% elif session['emp_role'] == 'admin' %}
+                <a href="/report">Reporting</a> |
+                <a href="/my-time">My Time</a> |
+                <a href="/log-time">Log Time</a> |
+                <a href="/manage-projects">Projects</a> |
+                <a href="/manage-employees">Employees</a> |
             {% endif %}
 
             <a href="/logout">Logout</a>
