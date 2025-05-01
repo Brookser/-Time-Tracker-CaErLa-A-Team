@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}Time Tracker{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -34,6 +35,11 @@
                 <a href="/log-time">Log Time</a> |
                 <a href="/manage-projects">Projects</a> |
                 <a href="/manage-employees">Employees</a> |
+
+            {% elif session['emp_role'] == 'individual' %}
+                <a href="/my-time">My Time</a> |
+                <a href="/log-time">Log Time</a> |
+                <a href="/manage-projects">Projects</a> |
             {% endif %}
 
             <a href="/logout">Logout</a>
