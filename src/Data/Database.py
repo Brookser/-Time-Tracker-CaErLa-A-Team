@@ -170,6 +170,38 @@ class Database:
         ''', (project_id, empid))
         cls.commit()
 
+    @classmethod
+    def get_project_summary(cls, project_ids, start=None, end=None):
+        if not project_ids:
+            return []
+
+        cursor = cls.get_cursor()
+        placeholders = ','.join('?' for _ in project_ids)
+        params = list(project_ids)
+
+        query = f'''
+            SELECT 
+                p.PROJECT_NAME,
+                p.PROJECTID,
+                COUNT(DISTINCT t.EMPID) AS employee_count,
+                SUM(t.TOTAL_MINUTES) AS total_minutes
+            FROM time t
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE t.PROJECTID IN ({placeholders})
+        '''
+
+        if start:
+            query += " AND t.START_TIME >= ?"
+            params.append(start + " 00:00:00")
+        if end:
+            query += " AND t.STOP_TIME <= ?"
+            params.append(end + " 23:59:59")
+
+        query += " GROUP BY p.PROJECTID"
+
+        cursor.execute(query, params)
+        return cursor.fetchall()
+
     # ======================
     # 🔹 Department Queries
     # ======================
@@ -249,7 +281,40 @@ class Database:
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
 
-# ****************************
+    # test consolidated project reporting page below
+    @classmethod
+    def get_time_entries_filtered_by_projects(cls, project_ids, selected_project=None, start_date=None, end_date=None):
+        cursor = cls.get_cursor()
+
+        placeholders = ','.join('?' for _ in project_ids)
+        query = f'''
+            SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME,
+                   t.START_TIME, t.STOP_TIME, t.TOTAL_MINUTES, t.NOTES
+            FROM time t
+            JOIN employee_table e ON t.EMPID = e.EMPID
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE t.PROJECTID IN ({placeholders})
+        '''
+        params = list(project_ids)
+
+        if selected_project:
+            query += ' AND t.PROJECTID = ?'
+            params.append(selected_project)
+
+        if start_date:
+            query += ' AND t.START_TIME >= ?'
+            params.append(start_date)
+        if end_date:
+            query += ' AND t.STOP_TIME <= ?'
+            params.append(end_date)
+
+        print("🔍 Project report query:", query)
+        print("📦 Params:", params)
+
+        cursor.execute(query, params)
+        return cursor.fetchall()
+
+    # ****************************
 # written on 4.29.25 - EAB
 # ****************************
 
