@@ -7,3 +7,4 @@ dist/*
 *.spec
 .env
 structure.txt
+schema/
