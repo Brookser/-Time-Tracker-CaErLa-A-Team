@@ -126,6 +126,49 @@ class Database:
         result = cursor.fetchone()
         return result[0] if result else None
 
+    @classmethod
+    def get_visible_employees(cls, current_empid, current_role):
+        cursor = cls.get_cursor()
+
+        if current_role == "admin":
+            cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
+            return cursor.fetchall()
+
+        if current_role == "manager":
+            query = '''
+                SELECT EMPID, FIRST_NAME, LAST_NAME 
+                FROM employee_table 
+                WHERE EMP_ACTIVE = 1 AND (
+                    MGR_EMPID = ? OR 
+                    DPTID = (SELECT DPTID FROM employee_table WHERE EMPID = ?)
+                )
+            '''
+            cursor.execute(query, (current_empid, current_empid))
+            return cursor.fetchall()
+
+        if current_role == "project_manager":
+            cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
+            return cursor.fetchall()
+
+        return []
+
+    @classmethod
+    def get_project_ids_for_employee(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            SELECT PROJECT_ID FROM employee_projects
+            WHERE EMPID = ?
+        ''', (empid,))
+        return [row[0] for row in cursor.fetchall()]
+
+    @classmethod
+    def add_employee_to_project(cls, project_id, empid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO employee_projects (PROJECT_ID, EMPID)
+            VALUES (?, ?)
+        ''', (project_id, empid))
+        cls.commit()
 
     # ======================
     # 🔹 Department Queries

@@ -286,20 +286,20 @@ def create_project():
     empid = session.get("empid")
     role = session.get("emp_role")
 
-    if role not in ["manager", "project_manager", "individual"]:
+    if role not in ["manager", "project_manager", "individual", "admin"]:
         return redirect("/")
+
+    from src.Logic.Project import Project
+    from uuid import uuid4
 
     if request.method == "POST":
         name = request.form.get("project_name")
+        selected_empids = request.form.getlist("assigned_employees")
 
         if not name:
             return "❌ Project name is required."
 
-        # Generate project ID
-        from uuid import uuid4
-        projectid = f"P_{uuid4().hex[:8]}"  # e.g., P_ab12cd34
-
-        from src.Logic.Project import Project
+        projectid = f"P_{uuid4().hex[:8]}"
         new_project = Project(
             projectid=projectid,
             name=name,
@@ -308,12 +308,24 @@ def create_project():
 
         try:
             new_project.save_to_database()
-            Database.add_employee_to_project(projectid, empid)
-            return redirect("/my-projects")  # We'll add this soon
+            Database.add_employee_to_project(projectid, empid)  # always add creator
+
+            if role in ["manager", "project_manager", "admin"]:
+                for eid in selected_empids:
+                    if eid != empid:
+                        Database.add_employee_to_project(projectid, eid)
+
+            return redirect("/manage-projects")
         except Exception as e:
             return f"❌ Error creating project: {e}"
 
-    return render_template("createProject.html")
+    # GET request
+    eligible_employees = []
+    if role in ["manager", "project_manager", "admin"]:
+        eligible_employees = Database.get_visible_employees(empid, role)
+
+    return render_template("createProject.html", eligible_employees=eligible_employees)
+
 
 
 @app.route("/my-projects")
