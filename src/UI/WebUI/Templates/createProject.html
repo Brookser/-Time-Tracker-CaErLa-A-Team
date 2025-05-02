@@ -7,15 +7,19 @@
         <label for="project_name">Project Name:</label>
         <input type="text" name="project_name" id="project_name" required>
         <br><br>
+
         {% if eligible_employees %}
-            <label for="assigned_employees">Assign Team Members:</label><br>
-            {% for emp in eligible_employees %}
-                <input type="checkbox" name="assigned_employees" value="{{ emp[0] }}">
-                {{ emp[1] }} {{ emp[2] }} ({{ emp[0] }})<br>
-            {% endfor %}
-            <br>
+            <label for="assigned_employees" class="member-select">Assign Team Memebers:</label>
+            <div class="assign-members">
+                {% for emp in eligible_employees %}
+                    <label class="member-entry">
+                        <input type="checkbox" name="assigned_employees" value="{{ emp[0] }}">
+                        {{ emp[1] }} {{ emp[2] }} ({{ emp[0] }})
+                    </label>
+                {% endfor %}
+            </div>
         {% endif %}
-        <br><br>
+
         <button type="submit">Create Project</button>
     </form>
 {% endblock %}

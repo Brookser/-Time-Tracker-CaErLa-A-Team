@@ -202,6 +202,15 @@ class Database:
         cursor.execute(query, params)
         return cursor.fetchall()
 
+    @classmethod
+    def get_employees_assigned_to_project(cls, projectid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            SELECT EMPID FROM employee_projects
+            WHERE PROJECT_ID = ?
+        ''', (projectid,))
+        return [row[0] for row in cursor.fetchall()]
+
     # ======================
     # 🔹 Department Queries
     # ======================

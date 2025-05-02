@@ -436,23 +436,25 @@ def my_projects():
 @login_required
 def manage_projects():
     empid = session.get("empid")
+    all_projects = Database.get_all_projects()
+    project_membership = Database.get_project_ids_for_employee(empid)
 
-    # Projects created by the user
-    created = [
-        (pid, name) for pid, name in Database.get_all_projects()
-        if Database.get_project_created_by(pid) == empid
-    ]
+    personal = []
+    team = []
 
-    # Projects assigned to the user (from employee_projects)
-    assigned_ids = Database.get_project_ids_for_employee(empid)
+    for pid, name in all_projects:
+        creator = Database.get_project_created_by(pid)
+        members = Database.get_employees_assigned_to_project(pid)
 
-    # Get details for assigned projects (excluding ones they created)
-    assigned = [
-        (pid, name) for pid, name in Database.get_all_projects()
-        if pid in assigned_ids and Database.get_project_created_by(pid) != empid
-    ]
+        if empid not in members:
+            continue  # skip if the current user isn’t on this project
 
-    return render_template("manageProjects.html", created=created, assigned=assigned)
+        if creator == empid and len(members) == 1:
+            personal.append((pid, name))
+        else:
+            team.append((pid, name))
+
+    return render_template("manageProjects.html", personal=personal, team=team)
 
 @app.route("/project-summary", methods=["GET", "POST"])
 @login_required

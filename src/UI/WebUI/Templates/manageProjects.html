@@ -3,29 +3,37 @@
 {% block header %}Your Projects{% endblock %}
 
 {% block content %}
-    <a href="/create-project"><button>Create New Project</button></a>
+    <h2>Personal Projects</h2>
+    {% if personal %}
+        <div class="card-grid">
+        {% for pid, name in personal %}
+            <div class="project-card">
+                <strong>{{ name }}</strong><br>
+                <small>ID: {{ pid }}</small>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <p>You have no personal projects.</p>
+    {% endif %}
+
     <hr>
 
     <h2>Team Projects You're Assigned To</h2>
-    {% if assigned %}
-        <ul>
-            {% for pid, name in assigned %}
-                <li><strong>{{ name }}</strong> (ID: {{ pid }})</li>
-            {% endfor %}
-        </ul>
+    {% if team %}
+        <div class="card-grid">
+        {% for pid, name in team %}
+            <div class="project-card">
+                <strong>{{ name }}</strong><br>
+                <small>ID: {{ pid }}</small>
+            </div>
+        {% endfor %}
+        </div>
     {% else %}
         <p>You are not assigned to any team projects.</p>
     {% endif %}
 
-    <hr>
-    <h2>Projects You Created</h2>
-    {% if created %}
-        <ul>
-            {% for pid, name in created %}
-                <li><strong>{{ name }}</strong> (ID: {{ pid }})</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>You haven't created any projects yet.</p>
-    {% endif %}
+    <div style="margin-top: 30px;">
+        <a href="/create-project"><button>Create New Project</button></a>
+    </div>
 {% endblock %}
