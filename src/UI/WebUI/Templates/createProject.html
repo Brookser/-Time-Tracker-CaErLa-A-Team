@@ -5,6 +5,8 @@
 {% block content %}
     <form method="POST" action="/create-project">
         <label for="project_name">Project Name:</label>
+        <input type="text" name="project_name" id="project_name" required>
+        <br><br>
         {% if eligible_employees %}
             <label for="assigned_employees">Assign Team Members:</label><br>
             {% for emp in eligible_employees %}
@@ -13,7 +15,6 @@
             {% endfor %}
             <br>
         {% endif %}
-        <input type="text" name="project_name" id="project_name" required>
         <br><br>
         <button type="submit">Create Project</button>
     </form>
