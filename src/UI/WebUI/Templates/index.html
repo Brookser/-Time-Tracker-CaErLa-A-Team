@@ -1,11 +1,41 @@
 {% extends "default.html" %}
-{% block title %}Time Tracker{% endblock %}
-{% block header %}Time Tracker{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block header %}Welcome to Time Tracker{% endblock %}
+
 {% block content %}
-    <p>Select from the menu above to continue</p>
-<!--    <ul>-->
-<!--        {% for path, label in menu_choices.items() %}-->
-<!--            <li><a href="{{ path }}">{{ label }}</a></li>-->
-<!--        {% endfor %}-->
-<!--    </ul>-->
+    <p style="margin-bottom: 30px;">Choose a feature to get started:</p>
+
+    <div class="dashboard-grid">
+        {% if session['emp_role'] in ['individual', 'manager', 'project_manager', 'admin'] %}
+            <div class="dashboard-card">
+                <a href="/log-time">🕒<br>Log Time</a>
+            </div>
+            <div class="dashboard-card">
+                <a href="/my-time">📋<br>My Time</a>
+            </div>
+            <div class="dashboard-card">
+                <a href="/manage-projects">📁<br>Projects</a>
+            </div>
+        {% endif %}
+        {% if session['emp_role'] == 'manager' %}
+            <div class="dashboard-card">
+                <a href="/report">📊<br>Team Reports</a>
+            </div>
+        {% endif %}
+        {% if session['emp_role'] == 'project_manager' %}
+            <div class="dashboard-card">
+                <a href="/project-report">🧱<br>Project Report</a>
+            </div>
+        {% endif %}
+        {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}
+            <div class="dashboard-card">
+                <a href="/manage-projects">📁<br>Projects</a>
+            </div>
+        {% endif %}
+        {% if session['emp_role'] in ['manager', 'admin'] %}
+            <div class="dashboard-card">
+                <a href="/manage-employees">👥<br>Employees</a>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

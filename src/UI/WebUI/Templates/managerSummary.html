@@ -1,30 +1,43 @@
 {% extends "default.html" %}
-{% block title %}Manager - Today's Summary{% endblock %}
-{% block header %}Today's Summary - Your Team{% endblock %}
+{% block title %}Team Summary - Today{% endblock %}
+{% block header %}Today's Summary - {{ today }}{% endblock %}
 
 {% block content %}
-    <h2> {{ today }} </h2>
-    {% if summary %}
-        {% for emp, projects in summary.items() %}
-            <h4>{{ emp }}</h4>
-            <ul>
+
+<h2>Time Logged by Team</h2>
+
+{% if summary %}
+    {% for emp_name, projects in summary.items() %}
+        <div style="background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <h3 style="margin-top: 0;">👤 {{ emp_name }}</h3>
+            <ul style="margin-left: 0; padding-left: 1rem;">
                 {% for project, minutes in projects.items() %}
-                    <li>{{ project }}: {{ minutes }} minutes</li>
+                    <li><strong>{{ project }}</strong>: {{ minutes }} minutes</li>
                 {% endfor %}
             </ul>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No entries found for your team today.</p>
+{% endif %}
+
+<h2>Total Time by Project</h2>
+
+{% if project_totals %}
+    <table>
+        <tr>
+            <th>Project</th>
+            <th>Total Minutes</th>
+        </tr>
+        {% for project, total in project_totals.items() %}
+        <tr>
+            <td>{{ project }}</td>
+            <td>{{ total }}</td>
+        </tr>
         {% endfor %}
-    {% else %}
-        <p>No time entries found for your team today.</p>
-    {% endif %}
-    <hr>
-    <h3>Total Time by Project</h3>
-    {% if project_totals %}
-        <ul>
-            {% for project, total in project_totals.items() %}
-                <li>{{ project }}: {{ total }} minutes</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No project time logged today.</p>
-    {% endif %}
+    </table>
+{% else %}
+    <p>No project totals available.</p>
+{% endif %}
+
 {% endblock %}
