@@ -3,6 +3,29 @@
 {% block header %}Your Projects{% endblock %}
 
 {% block content %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0;">Team Projects You're Assigned To</h2>
+        <a href="/create-project"><button>Create New Project</button></a>
+    </div>
+    {% if team %}
+        <div class="card-grid">
+        {% for pid, name in team %}
+            {% set owner = Database.get_employee_by_empid(Database.get_project_created_by(pid)) %}
+            <div class="project-card">
+                <strong>{{ name }}</strong><br>
+                <small>ID: {{ pid }}</small><br>
+                <small>Owner: <span class="owner-name">{{ owner[1] }} {{ owner[2] }}</span></small>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <p>You are not assigned to any team projects.</p>
+    {% endif %}
+
+    <br>
+    <hr>
+
     <h2>Personal Projects</h2>
     {% if personal %}
         <div class="card-grid">
@@ -17,23 +40,8 @@
         <p>You have no personal projects.</p>
     {% endif %}
 
-    <hr>
-
-    <h2>Team Projects You're Assigned To</h2>
-    {% if team %}
-        <div class="card-grid">
-        {% for pid, name in team %}
-            <div class="project-card">
-                <strong>{{ name }}</strong><br>
-                <small>ID: {{ pid }}</small>
-            </div>
-        {% endfor %}
-        </div>
-    {% else %}
-        <p>You are not assigned to any team projects.</p>
-    {% endif %}
-
-    <div style="margin-top: 30px;">
+    <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
         <a href="/create-project"><button>Create New Project</button></a>
     </div>
+
 {% endblock %}

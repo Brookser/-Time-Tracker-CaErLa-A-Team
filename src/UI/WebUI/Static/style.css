@@ -285,3 +285,8 @@ label.member-select {
     padding: 8px 0;
     border-bottom: 1px solid #eee;
 }
+
+.owner-name {
+    color: #0077cc;
+    font-weight: 500;
+}
