@@ -6,7 +6,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h2 style="margin: 0;">Team Projects You're Assigned To</h2>
-        <a href="/create-project"><button>Create New Project</button></a>
+<!--        <a href="/create-project"><button>Create New Project</button></a>-->
     </div>
     {% if team %}
         <div class="card-grid">
@@ -40,7 +40,7 @@
         <p>You have no personal projects.</p>
     {% endif %}
 
-    <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
+    <div class="floating-create-button">
         <a href="/create-project"><button>Create New Project</button></a>
     </div>
 

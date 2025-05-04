@@ -290,3 +290,10 @@ label.member-select {
     color: #0077cc;
     font-weight: 500;
 }
+
+.floating-create-button {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    z-index: 999;
+}

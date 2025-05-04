@@ -27,11 +27,11 @@
                 <a href="/project-report">🧱<br>Project Report</a>
             </div>
         {% endif %}
-        {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}
-            <div class="dashboard-card">
-                <a href="/manage-projects">📁<br>Projects</a>
-            </div>
-        {% endif %}
+<!--        {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}-->
+<!--            <div class="dashboard-card">-->
+<!--                <a href="/manage-projects">📁<br>Projects</a>-->
+<!--            </div>-->
+<!--        {% endif %}-->
         {% if session['emp_role'] in ['manager', 'admin'] %}
             <div class="dashboard-card">
                 <a href="/manage-employees">👥<br>Employees</a>
