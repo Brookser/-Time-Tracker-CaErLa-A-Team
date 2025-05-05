@@ -5,7 +5,7 @@ from src.Data.Database import Database
 from src.Logic.Login import Login
 from src.Logic.Employee import Employee
 from src.Logic.Project import Project
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 print("🔎 Server datetime now:", datetime.now())

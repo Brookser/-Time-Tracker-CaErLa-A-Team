@@ -1,6 +1,10 @@
 import mariadb
 import os
 from dotenv import load_dotenv
+import pytz
+from datetime import datetime, timezone
+
+local_tz = pytz.timezone("America/Los_Angeles")  # adjust if needed
 
 load_dotenv()
 
@@ -679,19 +683,21 @@ class Database:
     def start_time_entry(cls, timeid, empid, projectid, start_time, notes):
         cursor = cls.get_cursor()
         cursor.execute('''
-                INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
-                VALUES (?, ?, ?, ?, NULL, ?, 0)
-            ''', (timeid, empid, projectid, start_time, notes))
+            INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, NOTES, MANUAL_ENTRY)
+            VALUES (?, ?, ?, ?, ?, 0)
+        ''', (timeid, empid, projectid, datetime.now(local_tz), notes))
         cls.commit()
 
     @classmethod
     def stop_time_entry(cls, empid):
         cursor = cls.get_cursor()
+        stop_time = datetime.now(local_tz)
         cursor.execute('''
-                UPDATE time
-                SET STOP_TIME = NOW()
-                WHERE EMPID = ? AND STOP_TIME IS NULL
-            ''', (empid,))
+            UPDATE time
+            SET STOP_TIME = ?
+            WHERE EMPID = ? AND STOP_TIME IS NULL
+        ''', (stop_time, empid))
+
         cls.commit()
 
     # *******************************
