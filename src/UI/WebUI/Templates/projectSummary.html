@@ -5,14 +5,23 @@
 {% block content %}
 <h2>Filter by Date</h2>
 <form method="POST" action="/project-summary">
-    <label for="start">Start Date:</label>
-    <input type="date" name="start" id="start" value="{{ start or '' }}">
-
-    <label for="end">End Date:</label>
-    <input type="date" name="end" id="end" value="{{ end or '' }}">
-
-    <button type="submit">Apply Filter</button>
+    <div class="date-range-fields">
+        <div>
+            <label for="start">Start Date:</label>
+            <input type="date" name="start" id="start" value="{{ start or '' }}">
+        </div>
+        <div>
+            <label for="end">End Date:</label>
+            <input type="date" name="end" id="end" value="{{ end or '' }}">
+        </div>
+        <div>
+            <label>&nbsp;</label>  <!-- spacer to align button -->
+            <button type="submit">Apply Filter</button>
+        </div>
+    </div>
 </form>
+
+
 
 <hr>
 
