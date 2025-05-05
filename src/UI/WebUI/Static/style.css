@@ -127,7 +127,7 @@ li {
 .member-entry {
     display: flex;
     align-items: center;
-    gap: 4px; /* reduce gap between checkbox and label */
+    gap: 4px;
     margin: 2px 0;
     font-size: 15px;
 }
@@ -189,7 +189,72 @@ label.member-select {
     margin-top: 5px;
     align-self: flex-end;
 }
+
+.report-card form {
+    background: none;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.report-card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: -15px;
+    color: #2e2e2e;
+}
+
 /* end Project pages forms*/
+
+/* Project View tabs */
+.tab-button {
+    background-color: #0077cc;
+    color: #ffffff;
+    /*border: 1px solid #000000;*/
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tab-button:hover {
+    background-color: #025894;
+    transform: translateY(4px);
+}
+
+.view-buttons {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: -20px;
+}
+
+.view-buttons a {
+    margin-left: 10px;
+    text-decoration: none;
+}
+
+.tab-heading {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: inline-block;
+    position: relative;
+    top: 6px;
+}
+
+/* End Project View tabs */
+
 
 .dashboard-grid {
     display: grid;
@@ -267,7 +332,7 @@ label.member-select {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .section-header h2 {
@@ -282,7 +347,12 @@ label.member-select {
 .report-card {
     background-color: #ffffff;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     margin-bottom: 40px;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border-top: none;
+
 }

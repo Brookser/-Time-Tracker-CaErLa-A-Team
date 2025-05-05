@@ -10,52 +10,63 @@
     </a>
 </div>
 
-<form method="GET" action="/report">
-    <label for="employee">Employee:</label>
-    <select name="employee" id="employee">
-        <option value="">-- All Employees --</option>
-        {% for emp in employees %}
-            <option value="{{ emp[0] }}" {% if request.args.get('employee') == emp[0] %}selected{% endif %}>
-                {{ emp[1] }} {{ emp[2] }}
-            </option>
-        {% endfor %}
-    </select>
+<div class="report-card">
+    <form method="GET" action="/report">
+        <div class="date-range-fields">
+            <div>
+                <label for="employee">Employee:</label>
+                <select name="employee" id="employee">
+                    <option value="">-- All Employees --</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp[0] }}" {% if request.args.get('employee') == emp[0] %}selected{% endif %}>
+                            {{ emp[1] }} {{ emp[2] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
 
-    <label for="start">Start Date:</label>
-    <input type="date" name="start" id="start" value="{{ request.args.get('start', '') }}">
+            <div>
+                <label for="start">Start Date:</label>
+                <input type="date" name="start" id="start" value="{{ request.args.get('start', '') }}">
+            </div>
 
-    <label for="end">End Date:</label>
-    <input type="date" name="end" id="end" value="{{ request.args.get('end', '') }}">
+            <div>
+                <label for="end">End Date:</label>
+                <input type="date" name="end" id="end" value="{{ request.args.get('end', '') }}">
+            </div>
 
-    <button type="submit">Filter</button>
-</form>
+            <div>
+                <label>&nbsp;</label>
+                <button type="submit">Filter</button>
+            </div>
+        </div>
+    </form>
 
-<hr>
+    <h3>Time Entries</h3>
 
-<h2>Time Entries</h2>
-
-{% if entries %}
-    <table>
-        <tr>
-            <th>Employee</th>
-            <th>Project</th>
-            <th>Start</th>
-            <th>Stop</th>
-            <th>Notes</th>
-            <th>Minutes</th>
-        </tr>
-        {% for e in entries %}
-        <tr>
-            <td>{{ e[1] }} {{ e[2] }}</td>
-            <td>{{ e[3] }}</td>
-            <td>{{ e[4] }}</td>
-            <td>{{ e[5] }}</td>
-            <td>{{ e[6] }}</td>
-            <td>{{ e[7] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>No time entries found.</p>
-{% endif %}
+    {% if entries %}
+        <table>
+            <tr>
+                <th>Employee</th>
+                <th>Project</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Notes</th>
+                <th>Minutes</th>
+            </tr>
+            {% for e in entries %}
+            <tr>
+                <td>{{ e[1] }} {{ e[2] }}</td>
+                <td>{{ e[3] }}</td>
+                <td>{{ e[4] }}</td>
+                <td>{{ e[5] }}</td>
+                <td>{{ e[6] }}</td>
+                <td>{{ e[7] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No time entries found.</p>
+    {% endif %}
+</div>
 {% endblock %}
