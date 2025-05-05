@@ -9,6 +9,8 @@
 # Sources:          Project Charter - Jira Story: Tests 1 & 2
 #
 # Change Log:       - 04.24.2025: Initial setup
+#                   - time_tracker_schema_backup file was updated due to adding table employee_projects
+#                           updated filename in this script to align with updated schema
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************  
@@ -314,8 +316,8 @@ def restore_database_schema(backup_file_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Restore a MariaDB database from a schema backup file')
     parser.add_argument('backup_file', nargs='?',
-                        default='time_tracker_schema_backup_20250424_111010.sql',
-                        help='Path to the schema backup SQL file (default: time_tracker_schema_backup_20250424_111010.sql)')
+                        default='time_tracker_schema_backup_20250501_180100.sql',
+                        help='Path to the schema backup SQL file (default: time_tracker_schema_backup_20250501_180100.sql)')
     args = parser.parse_args()
 
     print("=== MariaDB Schema Restore Tool ===")

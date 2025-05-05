@@ -91,6 +91,31 @@ class Database:
         # Individual users don't need a dropdown
         return []
 
+    # ****************************
+    # written on 5.4.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def update_employee_manager(cls, empid, new_mgr_empid):
+        """
+        Updates the manager (MGR_EMPID) for an employee.
+
+        Args:
+            empid: The ID of the employee to update
+            new_mgr_empid: The new manager's employee ID (can be None to remove manager)
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE employee_table
+            SET MGR_EMPID = ?
+            WHERE EMPID = ?
+        ''', (new_mgr_empid, empid))
+        cls.commit()
+
+    # ****************************
+    # end of 5.4.2025 update - EAB
+    # ****************************
+
     # ======================
     # 🔹 Project Queries
     # ======================
@@ -126,6 +151,48 @@ class Database:
         result = cursor.fetchone()
         return result[0] if result else None
 
+    # ****************************
+    # written on 5.4.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def deactivate_project(cls, projectid):
+        """
+        Deactivates a project by setting PROJECT_ACTIVE to 0.
+
+        Args:
+            projectid: The ID of the project to deactivate
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE projects
+            SET PROJECT_ACTIVE = 0
+            WHERE PROJECTID = ?
+        ''', (projectid,))
+        cls.commit()
+
+    @classmethod
+    def activate_project(cls, projectid):
+        """
+        Activates a project by setting PROJECT_ACTIVE to 1.
+
+        Args:
+            projectid: The ID of the project to activate
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE projects
+            SET PROJECT_ACTIVE = 1
+            WHERE PROJECTID = ?
+        ''', (projectid,))
+        cls.commit()
+
+
+    # ****************************
+    # end of 5.4.2025 update - EAB
+    # ****************************
+
+
 
     # ======================
     # 🔹 Department Queries
@@ -145,6 +212,67 @@ class Database:
             VALUES (?, ?, ?, ?)
         ''', (dptid, dpt_name, manager_id, active))
         cls.commit()
+
+
+
+    # ****************************
+    # written on 5.4.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def deactivate_department(cls, dptid):
+        """
+        Deactivates a department by setting DPT_ACTIVE to 0.
+
+        Args:
+            dptid: The ID of the department to deactivate
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE departments
+            SET DPT_ACTIVE = 0
+            WHERE PROJECTID = ?
+        ''', (dptid,))
+        cls.commit()
+
+    @classmethod
+    def activate_department(cls, dptid):
+        """
+        Activates a department by setting DPT_ACTIVE to 1.
+
+        Args:
+            dptid: The ID of the department to activate
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE departments
+            SET PROJECT_ACTIVE = 1
+            WHERE PROJECTID = ?
+        ''', (dptid,))
+        cls.commit()
+
+    @classmethod
+    def update_manager_ID(cls, dptid, new_mgr_empid):
+        """
+        Updates the manager (MANAGERID) for an department.
+
+        Args:
+            dptid: The ID of the department to update
+            new_mgr_empid: The new manager's employee ID (can be None to remove manager)
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE departments
+            SET MANAGERID = ?
+            WHERE DPTID = ?
+        ''', (new_mgr_empid, dptid))
+        cls.commit()
+
+    # ****************************
+    # end of 5.4.2025 update - EAB
+    # ****************************
+
+
 
     # ======================
     # 🔹 Login Queries
@@ -196,6 +324,7 @@ class Database:
 # 🔹 TimeEntry Queries
 # ======================
 
+
     @classmethod
     def add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes):
         cursor = cls.get_cursor()
@@ -206,12 +335,40 @@ class Database:
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
 
+
+# so DemoData.py can run correctly
+    @classmethod
+    def erikas_add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry):
+        cursor = cls.get_cursor()
+
+        # Try a simple insert first
+        try:
+            cursor.execute('''
+                INSERT INTO time (EMPID, PROJECTID, START_TIME, STOP_TIME, MANUAL_ENTRY)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (empid, projectid, start_time, stop_time, manual_entry))
+            cls.commit()
+            print("Simple insert successful!")
+        except Exception as e:
+            print(f"Simple insert failed: {e}")
+
+        # Now try with notes
+        try:
+            cursor.execute('''
+                INSERT INTO time (EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            ''', (empid, projectid, start_time, stop_time, notes, manual_entry))
+            cls.commit()
+            print("Full insert successful!")
+        except Exception as e:
+            print(f"Full insert failed: {e}")
+
 # ****************************
 # written on 4.29.25 - EAB
 # ****************************
 
     @classmethod
-    def update_notes(self, timeid, new_notes):
+    def update_notes(cls, timeid, new_notes):
         """
         Updates the notes field for an existing time entry.
 
@@ -219,19 +376,116 @@ class Database:
             timeid: The ID of the time entry to update
             new_notes: The new notes text to set
         """
-        print("🧪 Available methods on Database:")
-        print(dir(Database))
-        # Update the instance notes as well
-        self.set_notes(new_notes)
-        # Call the database alter_notes method
-        Database.alter_notes(
-            timeid=timeid,
-            notes=new_notes
-        )
+        cursor = cls.get_cursor()
+        cursor.execute('''
+                    UPDATE time_entries
+                    SET NOTES = ?
+                    WHERE TIMEID = ?
+                ''', (new_notes, timeid))
+        cls.commit()
 
     # ****************************
     # end of 4.29.25 update - EAB
     # ****************************
+
+    # ****************************
+    # written on 5.4.25 - EAB
+    # ****************************
+
+    @classmethod
+    def update_projectid(cls, timeid, new_projectid):
+        """
+        Updates the PROJECTID field for an existing time entry.
+
+        Args:
+            timeid: The ID of the time entry to update
+            projectid: The new PROJECTID
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE projects
+            SET PROJECTID = ?
+            WHERE TIMEID = ?
+        ''', (new_projectid, timeid))
+        cls.commit()
+
+
+    @classmethod
+    def manual_note_true(cls, timeid):
+        """
+        Indicates a manual note by setting MANUAL_ENTRY to 1.
+
+        Args:
+            timeid: The ID of the entry to update
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE departments
+            SET MANUAL_ENTRY = 1
+            WHERE TIMEID = ?
+        ''', (timeid,))
+        cls.commit()
+
+    @classmethod
+    def add_manual_time_entry(cls, empid, projectid, start_datetime, stop_datetime, notes=None):
+        """
+        Add a manual time entry to the database.
+
+        Args:
+            empid: Employee ID
+            projectid: Project ID
+            start_datetime: Start datetime in format 'YYYY-MM-DD HH:MM:SS'
+            stop_datetime: Stop datetime in format 'YYYY-MM-DD HH:MM:SS'
+            notes: Optional notes for the time entry
+
+        Note: If seconds are not provided, they will default to :00
+        """
+        cursor = cls.get_cursor()
+
+        # If the datetime doesn't include seconds, add :00
+        if len(start_datetime.split(':')) == 2:
+            start_datetime += ':00'
+        if len(stop_datetime.split(':')) == 2:
+            stop_datetime += ':00'
+
+        # Calculate total minutes
+        from datetime import datetime
+        start_dt = datetime.strptime(start_datetime, '%Y-%m-%d %H:%M:%S')
+        stop_dt = datetime.strptime(stop_datetime, '%Y-%m-%d %H:%M:%S')
+        total_minutes = int((stop_dt - start_dt).total_seconds() / 60)
+
+        # Insert the time entry with manual_entry flag set to 1
+        cursor.execute('''
+            INSERT INTO time 
+            (EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY, TOTAL_MINUTES)
+            VALUES (?, ?, ?, ?, ?, 1, ?)
+        ''', (empid, projectid, start_datetime, stop_datetime, notes, total_minutes))
+        cls.commit()
+
+#                      *** EXAMPLES OF HOW TO USE ***
+#                            Database.add_manual_time_entry(
+#                                empid='E001',
+#                                projectid='P001',
+#                                start_date='2025-05-04',
+#                                start_time='09:30',
+#                                stop_date='2025-05-04',
+#                                stop_time='17:45',
+#                                notes='Manual entry for client meeting'
+#                            )
+#
+#                        *** Or with a version that accepts full datetime strings
+#                            Database.add_manual_time_entry(
+#                                empid='E001',
+#                                projectid='P001',
+#                                start_datetime='2025-05-04 09:30',
+#                                stop_datetime='2025-05-04 17:45',
+#                                notes='Manual entry for client meeting'
+#                            )
+
+    # ****************************
+    # end of 5.4.25 update - EAB
+    # ****************************
+
 
     @classmethod
     def get_all_time_entries(cls):
@@ -314,4 +568,34 @@ class Database:
         return cursor.fetchall()
 
 
+
+# ======================
+# 🔹 EmployeeProject Queries
+# ======================
+
+    # ****************************
+    # written on 5.4.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def add_employee_project(cls, empid, project_id):
+        """
+        Add an employee-project relationship to the employee_projects junction table.
+
+        Args:
+            empid: The employee ID
+            project_id: The project ID
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO employee_projects (EMPID, PROJECT_ID)
+            VALUES (?, ?)
+        ''', (empid, project_id))
+        cls.commit()
+
+
+
+    # ****************************
+    # end of 5.4.2025 update - EAB
+    # ****************************
 
