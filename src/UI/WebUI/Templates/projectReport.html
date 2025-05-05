@@ -4,11 +4,15 @@
 
 {% block content %}
 
-<!-- View Mode Toggle -->
 <div style="margin-bottom: 20px;">
-    <a href="/project-report?view=detailed"><button>🗂 View Time Entries</button></a>
-    <a href="/project-report?view=summary"><button>📊 View Summary</button></a>
+    {% if view_mode != 'detailed' %}
+    <a href="/project-report?view=detailed"><button>🗂 Time Entries</button></a>
+    {% endif %}
+    {% if view_mode != 'summary' %}
+        <a href="/project-report?view=summary"><button>📊 Summary</button></a>
+    {% endif %}
 </div>
+
 
 {% if view_mode == "summary" %}
     <form method="get" action="/project-report">

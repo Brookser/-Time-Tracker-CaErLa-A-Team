@@ -14,7 +14,7 @@
             {% set owner = Database.get_employee_by_empid(Database.get_project_created_by(pid)) %}
             <div class="project-card">
                 <strong>{{ name }}</strong><br>
-                <small>ID: {{ pid }}</small><br>
+<!--                <small>ID: {{ pid }}</small><br>-->
                 <small>Owner: <span class="owner-name">{{ owner[1] }} {{ owner[2] }}</span></small>
             </div>
         {% endfor %}

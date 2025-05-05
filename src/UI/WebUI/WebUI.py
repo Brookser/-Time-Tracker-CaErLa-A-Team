@@ -432,6 +432,31 @@ def my_projects():
     return render_template("myProjects.html", projects=my_projects)
 
 
+# @app.route("/manage-projects")
+# @login_required
+# def manage_projects():
+#     empid = session.get("empid")
+#     all_projects = Database.get_all_projects()
+#     project_membership = Database.get_project_ids_for_employee(empid)
+#
+#     personal = []
+#     team = []
+#
+#     for pid, name in all_projects:
+#         creator = Database.get_project_created_by(pid)
+#         members = Database.get_employees_assigned_to_project(pid)
+#
+#         if empid not in members:
+#             continue  # skip if the current user isn’t on this project
+#
+#         if creator == empid and len(members) == 1:
+#             personal.append((pid, name))
+#         else:
+#             team.append((pid, name))
+#
+#     return render_template("manageProjects.html", personal=personal, team=team, Database=Database)
+
+# ALTernative version of manage_projects with sorting *****
 @app.route("/manage-projects")
 @login_required
 def manage_projects():
@@ -447,51 +472,25 @@ def manage_projects():
         members = Database.get_employees_assigned_to_project(pid)
 
         if empid not in members:
-            continue  # skip if the current user isn’t on this project
+            continue  # skip if not part of project
 
         if creator == empid and len(members) == 1:
             personal.append((pid, name))
         else:
-            team.append((pid, name))
+            owner = Database.get_employee_by_empid(creator)
+            team.append({
+                "pid": pid,
+                "name": name,
+                "owner_id": creator,
+                "owner_name": f"{owner[1]} {owner[2]}" if owner else "Unknown"
+            })
 
-    return render_template("manageProjects.html", personal=personal, team=team, Database=Database)
+    # Sort team: owned first, then others; alphabetically by project name
+    team.sort(key=lambda p: (p["owner_id"] != empid, p["name"].lower()))
 
-# ALTernative version of manage_projects with sorting *****
-# @app.route("/manage-projects")
-# @login_required
-# def manage_projects():
-#     empid = session.get("empid")
-#     all_projects = Database.get_all_projects()
-#     project_membership = Database.get_project_ids_for_employee(empid)
-#
-#     personal = []
-#     team_owned = []
-#     team_assigned = []
-#
-#     for pid, name in all_projects:
-#         creator = Database.get_project_created_by(pid)
-#         members = Database.get_employees_assigned_to_project(pid)
-#
-#         if empid not in members:
-#             continue  # skip if not on this project
-#
-#         if creator == empid and len(members) == 1:
-#             personal.append((pid, name))
-#         elif creator == empid:
-#             team_owned.append((pid, name))
-#         else:
-#             team_assigned.append((pid, name))
-#
-#     # Sort all project lists alphabetically by project name
-#     personal.sort(key=lambda x: x[1])
-#     team_owned.sort(key=lambda x: x[1])
-#     team_assigned.sort(key=lambda x: x[1])
-#
-#     return render_template("manageProjects.html",
-#                            personal=personal,
-#                            team_owned=team_owned,
-#                            team_assigned=team_assigned,
-#                            Database=Database)
+    return render_template("altManagerProjectTemp.html", personal=personal, team=team)
+
+
 
 
 @app.route("/project-summary", methods=["GET", "POST"])

@@ -4,54 +4,48 @@
 
 {% block content %}
 
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Team Projects You're Assigned To</h2>
-        <a href="/create-project"><button>Create New Project</button></a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0;">Team Projects You're Assigned To</h2>
     </div>
 
-    {% if team_owned %}
-        <h3>Team Projects You Own</h3>
+    {% if team %}
         <div class="card-grid">
-            {% for pid, name in team_owned %}
-                <div class="project-card">
-                    <strong>{{ name }}</strong><br>
-                    <small>ID: {{ pid }}</small><br>
-                    <small><span class="owner-name">Owner: You</span></small>
-                </div>
-            {% endfor %}
+        {% for project in team %}
+            <div class="project-card {% if project.owner_id == session['empid'] %}owned{% endif %}">
+                <strong>{{ project.name }}</strong>
+                {% if project.owner_id == session['empid'] %}
+                    <span class="tag">You Own This</span>
+                {% endif %}
+                <br>
+                {% if project.owner_id != session['empid'] %}
+                    <small>Owner: <span class="owner-name">{{ project.owner_name }}</span></small>
+                {% endif %}
+            </div>
+        {% endfor %}
         </div>
-    {% endif %}
-
-    {% if team_assigned %}
-        <h3>Other Team Projects</h3>
-        <div class="card-grid">
-            {% for pid, name in team_assigned %}
-                {% set owner = Database.get_employee_by_empid(Database.get_project_created_by(pid)) %}
-                <div class="project-card">
-                    <strong>{{ name }}</strong><br>
-                    <small>ID: {{ pid }}</small><br>
-                    <small>Owner: <span class="owner-name">{{ owner[1] }} {{ owner[2] }}</span></small>
-                </div>
-            {% endfor %}
-        </div>
-    {% elif not team_owned %}
+    {% else %}
         <p>You are not assigned to any team projects.</p>
     {% endif %}
 
+    <br>
     <hr>
 
     <h2>Personal Projects</h2>
     {% if personal %}
         <div class="card-grid">
-            {% for pid, name in personal %}
-                <div class="project-card">
-                    <strong>{{ name }}</strong><br>
-                    <small>ID: {{ pid }}</small>
-                </div>
-            {% endfor %}
+        {% for pid, name in personal %}
+            <div class="project-card">
+                <strong>{{ name }}</strong><br>
+                <small>ID: {{ pid }}</small>
+            </div>
+        {% endfor %}
         </div>
     {% else %}
         <p>You have no personal projects.</p>
     {% endif %}
+
+    <div class="floating-create-button">
+        <a href="/create-project"><button>Create New Project</button></a>
+    </div>
 
 {% endblock %}
