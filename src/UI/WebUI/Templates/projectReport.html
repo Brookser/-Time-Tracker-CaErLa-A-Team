@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="section-header">
-    <h2>
+    <h2 class="tab-heading">
         {% if view_mode == 'summary' %}
             Projects Summary View
         {% else %}
@@ -14,10 +14,14 @@
     </h2>
     <div class="view-buttons">
         {% if view_mode != 'detailed' %}
-            <a href="/project-report?view=detailed"><button>➤ Time Entries</button></a>
+            <a href="/project-report?view=detailed">
+                <button class="tab-button">➤ Time Entries</button>
+            </a>
         {% endif %}
         {% if view_mode != 'summary' %}
-            <a href="/project-report?view=summary"><button>➤ Projects Summary</button></a>
+            <a href="/project-report?view=summary">
+                <button class="tab-button">➤ Projects Summary</button>
+            </a>
         {% endif %}
     </div>
 </div>
