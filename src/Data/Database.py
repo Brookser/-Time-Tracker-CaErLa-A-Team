@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Database:
     __connection = None
 
@@ -27,10 +28,9 @@ class Database:
     def commit(cls):
         cls.__connection.commit()
 
-
-    # ======================
-    # 🔹 Employee Queries
-    # ======================
+# ======================
+# 🔹 Employee Queries
+# ======================
 
     @classmethod
     def add_employee(cls, empid, first_name, last_name, dptid, email=None, mgr_empid=None, active=1, emp_role="User"):
@@ -116,9 +116,9 @@ class Database:
     # end of 5.4.2025 update - EAB
     # ****************************
 
-    # ======================
-    # 🔹 Project Queries
-    # ======================
+# ======================
+# 🔹 Project Queries
+# ======================
 
     @classmethod
     def add_project(cls, projectid, name, created_by, date_created, prior_projectid=None, active=1):
@@ -237,10 +237,49 @@ class Database:
         ''', (projectid,))
         return [row[0] for row in cursor.fetchall()]
 
+    # *******************************
+    # written on 5.4.2025 - EAB
+    # *******************************
 
-    # ======================
-    # 🔹 Department Queries
-    # ======================
+    @classmethod
+    def deactivate_project(cls, projectid):
+        """
+        Deactivates a project by setting PROJECT_ACTIVE to 0.
+
+        Args:
+            projectid: The ID of the project to deactivate
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE projects
+            SET PROJECT_ACTIVE = 0
+            WHERE PROJECTID = ?
+        ''', (projectid,))
+        cls.commit()
+
+    @classmethod
+    def activate_project(cls, projectid):
+        """
+        Activates a project by setting PROJECT_ACTIVE to 1.
+
+        Args:
+            projectid: The ID of the project to activate
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE projects
+            SET PROJECT_ACTIVE = 1
+            WHERE PROJECTID = ?
+        ''', (projectid,))
+        cls.commit()
+
+    # ****************************
+    # end of 5.4.2025 update - EAB
+    # ****************************
+
+# ======================
+# 🔹 Department Queries
+# ======================
 
     @classmethod
     def get_departments(cls):
@@ -256,8 +295,6 @@ class Database:
             VALUES (?, ?, ?, ?)
         ''', (dptid, dpt_name, manager_id, active))
         cls.commit()
-
-
 
     # ****************************
     # written on 5.4.2025 - EAB
@@ -316,11 +353,10 @@ class Database:
     # end of 5.4.2025 update - EAB
     # ****************************
 
+# ======================
+# 🔹 Login Queries
+# ======================
 
-
-    # ======================
-    # 🔹 Login Queries
-    # ======================
     @classmethod
     def get_login_by_empid(cls, empid):
         cursor = cls.get_cursor()
@@ -363,11 +399,9 @@ class Database:
         cursor.execute("SELECT * FROM employee_table WHERE EMPID = ?", (empid,))
         return cursor.fetchone()
 
-
 # ======================
 # 🔹 TimeEntry Queries
 # ======================
-
 
     @classmethod
     def add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes):
@@ -378,7 +412,6 @@ class Database:
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
         cls.commit()
-
 
     # test consolidated project reporting page below
     @classmethod
@@ -459,7 +492,6 @@ class Database:
         ''', (new_projectid, timeid))
         cls.commit()
 
-
     @classmethod
     def manual_note_true(cls, timeid):
         """
@@ -535,7 +567,6 @@ class Database:
     # ****************************
     # end of 5.4.25 update - EAB
     # ****************************
-
 
     @classmethod
     def get_all_time_entries(cls):
@@ -617,7 +648,40 @@ class Database:
         cursor.execute(query, params)
         return cursor.fetchall()
 
+    # *******************************
+    # written on 5.4.2025 - EAB
+    # *******************************
 
+    # so DemoData.py can run correctly
+    @classmethod
+    def erikas_add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry):
+        cursor = cls.get_cursor()
+
+        # Try a simple insert first
+        try:
+            cursor.execute('''
+                INSERT INTO time (EMPID, PROJECTID, START_TIME, STOP_TIME, MANUAL_ENTRY)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (empid, projectid, start_time, stop_time, manual_entry))
+            cls.commit()
+            print("Simple insert successful!")
+        except Exception as e:
+            print(f"Simple insert failed: {e}")
+
+        # Now try with notes
+        try:
+            cursor.execute('''
+                INSERT INTO time (EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            ''', (empid, projectid, start_time, stop_time, notes, manual_entry))
+            cls.commit()
+            print("Full insert successful!")
+        except Exception as e:
+            print(f"Full insert failed: {e}")
+
+    # ****************************
+    # end of 5.4.2025 update - EAB
+    # ****************************
 
 # ======================
 # 🔹 EmployeeProject Queries
@@ -642,8 +706,6 @@ class Database:
             VALUES (?, ?)
         ''', (empid, project_id))
         cls.commit()
-
-
 
     # ****************************
     # end of 5.4.2025 update - EAB
