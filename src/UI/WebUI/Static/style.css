@@ -198,6 +198,14 @@ label.member-select {
     margin: 0;
 }
 
+.report-card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: -15px;
+    color: #2e2e2e;
+}
+
 /* end Project pages forms*/
 
 /* Project View tabs */
