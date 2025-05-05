@@ -204,46 +204,21 @@ CREATE TABLE `time` (
   `TIMEID` varchar(20) NOT NULL,
   `EMPID` varchar(20) NOT NULL,
   `START_TIME` datetime NOT NULL,
-  `STOP_TIME` datetime NOT NULL,
+  `STOP_TIME` datetime DEFAULT NULL,
   `NOTES` text DEFAULT NULL,
   `MANUAL_ENTRY` tinyint(1) DEFAULT 0,
-  `TOTAL_MINUTES` int(11) GENERATED ALWAYS AS (timestampdiff(MINUTE,`START_TIME`,`STOP_TIME`)) STORED,
   `PROJECTID` varchar(30) NOT NULL DEFAULT 'TEMP_PROJECT',
+  `TOTAL_MINUTES` int(11) GENERATED ALWAYS AS (timestampdiff(MINUTE,`START_TIME`,`STOP_TIME`)) STORED,
   PRIMARY KEY (`TIMEID`),
   KEY `EMPID` (`EMPID`),
   KEY `START_TIME` (`START_TIME`),
   KEY `STOP_TIME` (`STOP_TIME`),
-  KEY `fk_time_project` (`PROJECTID`),
+  KEY `fk_time_new_project` (`PROJECTID`),
   CONSTRAINT `fk_time_employee` FOREIGN KEY (`EMPID`) REFERENCES `employee_table` (`EMPID`) ON UPDATE CASCADE,
   CONSTRAINT `fk_time_project` FOREIGN KEY (`PROJECTID`) REFERENCES `projects` (`PROJECTID`),
   CONSTRAINT `chk_time_valid` CHECK (`STOP_TIME` > `START_TIME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`ebrooks23`@`%`*/ /*!50003 TRIGGER before_insert_time
-                BEFORE INSERT ON time
-                FOR EACH ROW
-                BEGIN
-                    DECLARE next_id INT;
-                    IF NEW.TIMEID IS NULL OR NEW.TIMEID = '' THEN
-                        SET next_id = (SELECT IFNULL(MAX(SUBSTRING(TIMEID, 2) + 0), 1000) + 1
-                                    FROM time);
-                        SET NEW.TIMEID = CONCAT('T', next_id);
-                    END IF;
-                END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -254,4 +229,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-01 17:15:56
+-- Dump completed on 2025-05-05  8:25:36

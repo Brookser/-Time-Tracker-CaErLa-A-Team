@@ -464,3 +464,12 @@ class Database:
         ''', (timeid, empid, projectid, start_time, notes))
         cls.commit()
 
+    @classmethod
+    def stop_time_entry(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE time
+            SET STOP_TIME = NOW()
+            WHERE EMPID = ? AND STOP_TIME IS NULL
+        ''', (empid,))
+        cls.commit()

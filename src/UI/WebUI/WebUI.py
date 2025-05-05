@@ -541,7 +541,8 @@ def log_time():
 @app.route("/stop-timer", methods=["POST"])
 @login_required
 def stop_timer():
-    # Placeholder logic for now
+    empid = session.get("empid")
+    Database.stop_time_entry(empid)
     return redirect("/log-time")
 
 
