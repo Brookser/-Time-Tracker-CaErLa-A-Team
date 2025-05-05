@@ -47,14 +47,12 @@
             <table>
                 <tr>
                     <th>Project Name</th>
-                    <th>Project ID</th>
                     <th>Total Minutes</th>
-                    <th>Unique Employees</th>
+                    <th>Employees</th>
                 </tr>
                 {% for row in summary %}
                 <tr>
                     <td>{{ row[0] }}</td>
-                    <td>{{ row[1] }}</td>
                     <td>{{ row[3] or 0 }}</td>
                     <td>{{ row[2] }}</td>
                 </tr>
