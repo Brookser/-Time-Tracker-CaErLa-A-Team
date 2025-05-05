@@ -1,0 +1,289 @@
+# **********************************************************************************************************************
+# **********************************************************************************************************************   
+# Author:           Erika Brooks
+# TTfeature:        Test_01
+# Date:             04.30.2025
+# Description:      DB setup script to include employee_projects
+#                       • has dual PK and FK
+# Input:            none
+# Output:           confirmation message
+
+#
+# Change Log:       - 04.30.2025: Initial setup
+#
+# **********************************************************************************************************************
+# **********************************************************************************************************************  
+import os
+import sys
+import mariadb
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+
+def setup_database():
+    """
+    Create database schema for the employee project management system.
+    """
+    try:
+        # Connect to MariaDB
+        conn = mariadb.connect(
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            port=int(os.getenv("DB_PORT")),
+            database=os.getenv("DB_NAME"),
+            connect_timeout=5
+        )
+
+        # Create a cursor
+        cursor = conn.cursor()
+
+        # Add proper error handling for each step
+        try:
+            # Create department table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS department (
+                    DPTID VARCHAR(20) PRIMARY KEY,
+                    DPT_NAME VARCHAR(100) NOT NULL,
+                    MANAGERID VARCHAR(20),
+                    DPT_ACTIVE TINYINT(1) DEFAULT 1,
+                    INDEX (MANAGERID)
+                )
+                """)
+            print("Department table created successfully.")
+
+            # Create employee_table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS employee_table (
+                    EMPID VARCHAR(20) PRIMARY KEY,
+                    FIRST_NAME VARCHAR(50) NOT NULL,
+                    LAST_NAME VARCHAR(50) NOT NULL,
+                    DPTID VARCHAR(20) NOT NULL,
+                    EMAIL_ADDRESS VARCHAR(100) UNIQUE NOT NULL,
+                    MGR_EMPID VARCHAR(20),
+                    EMP_ACTIVE TINYINT(1) DEFAULT 1,
+                    EMP_ROLE VARCHAR(20) NOT NULL,
+                    INDEX (DPTID),
+                    INDEX (MGR_EMPID),
+                    CONSTRAINT fk_employee_dept FOREIGN KEY (DPTID)
+                        REFERENCES department(DPTID) ON UPDATE CASCADE,
+                    CONSTRAINT fk_employee_manager FOREIGN KEY (MGR_EMPID)
+                        REFERENCES employee_table(EMPID) ON UPDATE CASCADE
+                )
+                """)
+            print("Employee table created successfully.")
+
+            # Update department with foreign key to employee_table (now that employee_table exists)
+            cursor.execute("""
+                ALTER TABLE department
+                ADD CONSTRAINT fk_dept_manager FOREIGN KEY (MANAGERID)
+                    REFERENCES employee_table(EMPID) ON UPDATE CASCADE
+                """)
+            print("Department table altered successfully.")
+
+            # Create login_table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS login_table (
+                    LOGINID VARCHAR(50) PRIMARY KEY,
+                    EMPID VARCHAR(20) NOT NULL,
+                    PASSWORD VARCHAR(255) NOT NULL,
+                    LAST_RESET DATETIME,
+                    FORCE_RESET TINYINT(1) DEFAULT 0,
+                    INDEX (EMPID),
+                    CONSTRAINT fk_login_employee FOREIGN KEY (EMPID)
+                        REFERENCES employee_table(EMPID) ON UPDATE CASCADE
+                )
+                """)
+            print("Login table created successfully.")
+
+            # Create projects table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS projects (
+                    PROJECTID VARCHAR(20) PRIMARY KEY,
+                    PROJECT_NAME VARCHAR(100) NOT NULL,
+                    CREATED_BY VARCHAR(20) NOT NULL,
+                    DATE_CREATED DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIOR_PROJECTID VARCHAR(20),
+                    PROJECT_ACTIVE TINYINT(1) DEFAULT 1,
+                    INDEX (CREATED_BY),
+                    INDEX (PRIOR_PROJECTID),
+                    CONSTRAINT fk_project_creator FOREIGN KEY (CREATED_BY)
+                        REFERENCES employee_table(EMPID) ON UPDATE CASCADE,
+                    CONSTRAINT fk_project_parent FOREIGN KEY (PRIOR_PROJECTID)
+                        REFERENCES projects(PROJECTID) ON UPDATE CASCADE
+                )
+                """)
+            print("Projects table created successfully.")
+
+            # Create employee_projects junction table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS employee_projects (
+                    EMPID VARCHAR(20) NOT NULL,
+                    PROJECT_ID VARCHAR(20) NOT NULL,
+                    PRIMARY KEY (EMPID, PROJECT_ID),
+                    INDEX (EMPID),
+                    INDEX (PROJECT_ID),
+                    CONSTRAINT fk_emp_proj_employee FOREIGN KEY (EMPID)
+                        REFERENCES employee_table(EMPID) ON UPDATE CASCADE,
+                    CONSTRAINT fk_emp_proj_project FOREIGN KEY (PROJECT_ID)
+                        REFERENCES projects(PROJECTID) ON UPDATE CASCADE
+                )
+                """)
+            print("Employee Projects junction table created successfully.")
+
+            # Create time table (updated to remove PROJECTID)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS time (
+                    TIMEID VARCHAR(20) PRIMARY KEY,
+                    EMPID VARCHAR(20) NOT NULL,
+                    PROJECTID VARCHAR(30) NOT NULL,
+                    START_TIME DATETIME NOT NULL,
+                    STOP_TIME DATETIME NOT NULL,
+                    NOTES TEXT,
+                    MANUAL_ENTRY TINYINT(1) DEFAULT 0,
+                    TOTAL_MINUTES INT GENERATED ALWAYS AS
+                        (TIMESTAMPDIFF(MINUTE, START_TIME, STOP_TIME)) STORED,
+                    INDEX (EMPID),
+                    INDEX (START_TIME),
+                    INDEX (STOP_TIME),
+                    CONSTRAINT fk_time_employee FOREIGN KEY (EMPID)
+                        REFERENCES employee_table(EMPID) ON UPDATE CASCADE,
+                    CONSTRAINT chk_time_valid CHECK (STOP_TIME > START_TIME)
+                )
+                """)
+            print("Time table created successfully.")
+
+            # Create triggers for custom auto-increment fields
+
+            # Trigger for EMPID
+            cursor.execute("""
+                DROP TRIGGER IF EXISTS before_insert_employee;
+                """)
+            cursor.execute("""
+                CREATE TRIGGER before_insert_employee
+                BEFORE INSERT ON employee_table
+                FOR EACH ROW
+                BEGIN
+                    DECLARE next_id INT;
+                    IF NEW.EMPID IS NULL OR NEW.EMPID = '' THEN
+                        SET next_id = (SELECT IFNULL(MAX(SUBSTRING(EMPID, 2) + 0), 1000) + 1
+                                    FROM employee_table);
+                        SET NEW.EMPID = CONCAT('E', next_id);
+                    END IF;
+                END;
+                """)
+            print("Employee ID trigger created successfully.")
+
+            # Trigger for DPTID
+            cursor.execute("""
+                DROP TRIGGER IF EXISTS before_insert_department;
+                """)
+            cursor.execute("""
+                CREATE TRIGGER before_insert_department
+                BEFORE INSERT ON department
+                FOR EACH ROW
+                BEGIN
+                    DECLARE next_id INT;
+                    IF NEW.DPTID IS NULL OR NEW.DPTID = '' THEN
+                        SET next_id = (SELECT IFNULL(MAX(SUBSTRING(DPTID, 2) + 0), 1000) + 1
+                                    FROM department);
+                        SET NEW.DPTID = CONCAT('D', next_id);
+                    END IF;
+                END;
+                """)
+            print("Department ID trigger created successfully.")
+
+            # Trigger for PROJECTID
+            cursor.execute("""
+                DROP TRIGGER IF EXISTS before_insert_project;
+                """)
+            cursor.execute("""
+                CREATE TRIGGER before_insert_project
+                BEFORE INSERT ON projects
+                FOR EACH ROW
+                BEGIN
+                    DECLARE next_id INT;
+                    IF NEW.PROJECTID IS NULL OR NEW.PROJECTID = '' THEN
+                        SET next_id = (SELECT IFNULL(MAX(SUBSTRING(PROJECTID, 2) + 0), 10000) + 1
+                                    FROM projects);
+                        SET NEW.PROJECTID = CONCAT('P', next_id);
+                    END IF;
+                END;
+                """)
+            print("Project ID trigger created successfully.")
+
+            # Trigger for time TIMEID
+            cursor.execute("""
+                DROP TRIGGER IF EXISTS before_insert_time;
+                """)
+            cursor.execute("""
+                CREATE TRIGGER before_insert_time
+                BEFORE INSERT ON time
+                FOR EACH ROW
+                BEGIN
+                    DECLARE next_id INT;
+                    IF NEW.TIMEID IS NULL OR NEW.TIMEID = '' THEN
+                        SET next_id = (SELECT IFNULL(MAX(SUBSTRING(TIMEID, 2) + 0), 1000) + 1
+                                    FROM time);
+                        SET NEW.TIMEID = CONCAT('T', next_id);
+                    END IF;
+                END;
+                """)
+            print("Time ID trigger created successfully.")
+
+            # Add a function to safely load initial data with circular foreign key references
+            def load_initial_data():
+                """
+                Load initial data for the database, disabling foreign key checks temporarily.
+                """
+                try:
+                    # Disable foreign key checks
+                    cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
+
+                    # Here you would insert your initial data
+                    # For example:
+                    # cursor.execute("INSERT INTO department (DPTID, DPT_NAME, DPT_ACTIVE) VALUES ('D1001', 'Administration', 1);")
+                    # cursor.execute("INSERT INTO employee_table (EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, EMP_ACTIVE, EMP_ROLE) VALUES ('E1001', 'Admin', 'User', 'D1001', 'admin@example.com', 1, 'ADMIN');")
+                    # cursor.execute("UPDATE department SET MANAGERID = 'E1001' WHERE DPTID = 'D1001';")
+
+                    # Re-enable foreign key checks
+                    cursor.execute("SET FOREIGN_KEY_CHECKS=1;")
+                    print("Initial data loaded successfully.")
+
+                except mariadb.Error as error:
+                    print(f"Error loading initial data: {error}")
+                    raise
+
+            # Uncomment this line to load initial data:
+            # load_initial_data()
+
+            # Commit changes
+            conn.commit()
+            print("Database setup completed successfully.")
+
+        except mariadb.Error as error:
+            # Rollback in case of any error
+            conn.rollback()
+            print(f"Error during setup: {error}")
+            raise
+
+        finally:
+            # Close cursor and connection
+            cursor.close()
+            conn.close()
+
+    except mariadb.Error as error:
+        print(f"Error connecting to database: {error}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    print("=== Setting up the database tables… ===")
+    setup_database()
+
+    print("=== Database table setup complete! ===")
+
+# **********************************************************************************************************************
+# **********************************************************************************************************************
