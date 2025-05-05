@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
 from src.Logic.TimeEntry import TimeEntry
 from src.Data.Database import Database
 from src.Logic.Login import Login
 from src.Logic.Employee import Employee
+from src.Logic.Project import Project
 from datetime import datetime
+import uuid
 
 print("🔎 Server datetime now:", datetime.now())
 
@@ -21,14 +23,6 @@ def login_required(f):
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
-
-
-# @app.route("/")
-# def home():
-#     menu_choices = {
-#         "/report": "View Time Report"
-#     }
-#     return render_template("index.html", menu_choices=menu_choices)
 
 @app.route("/")
 def home():
@@ -491,8 +485,6 @@ def manage_projects():
     return render_template("altManagerProjectTemp.html", personal=personal, team=team)
 
 
-
-
 @app.route("/project-summary", methods=["GET", "POST"])
 @login_required
 def project_summary():
@@ -514,6 +506,44 @@ def project_summary():
     summary = Database.get_project_summary(project_ids=all_project_ids, start=start, end=end)
 
     return render_template("projectSummary.html", summary=summary, start=start, end=end)
+
+@app.route("/log-time", methods=["GET", "POST"])
+@login_required
+def log_time():
+    empid = session.get("empid")
+
+    # Check if timer is already running
+    active_timer = Database.get_active_timer_for_user(empid)
+
+    if request.method == "POST" and not active_timer:
+        project_id = request.form.get("project_id")
+        notes = request.form.get("notes", "")
+        timeid = f"t-{uuid.uuid4().hex[:8]}"
+
+        Database.start_time_entry(
+            timeid=timeid,
+            empid=empid,
+            projectid=project_id,
+            start_time=datetime.now(),
+            notes=notes
+        )
+
+        session["active_timer_id"] = timeid
+        flash("⏱️ Timer started!", "success")
+        return redirect(url_for("log_time"))
+
+    # Fetch user projects for dropdown
+    projects = Project.get_projects_for_user(empid)
+    print("📦 Projects for user:", projects)
+
+    return render_template("logTime.html", projects=projects, active_timer=active_timer)
+
+@app.route("/stop-timer", methods=["POST"])
+@login_required
+def stop_timer():
+    # Placeholder logic for now
+    return redirect("/log-time")
+
 
 @app.route("/logout")
 def logout():

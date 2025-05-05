@@ -60,3 +60,8 @@ class Project:
     @staticmethod
     def get_active_projects():
         return Database.get_active_projects()
+
+    @staticmethod
+    def get_projects_for_user(empid):
+        return Database.get_projects_by_user(empid)
+

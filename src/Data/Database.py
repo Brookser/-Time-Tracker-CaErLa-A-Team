@@ -211,6 +211,19 @@ class Database:
         ''', (projectid,))
         return [row[0] for row in cursor.fetchall()]
 
+    @classmethod
+    def get_projects_by_user(cls, empid):
+        cursor = cls.get_cursor()
+        query = """
+            SELECT DISTINCT p.PROJECTID, p.PROJECT_NAME
+            FROM projects p
+            LEFT JOIN employee_projects ep ON p.PROJECTID = ep.PROJECT_ID
+            WHERE p.PROJECT_ACTIVE = 1
+              AND (p.CREATED_BY = ? OR ep.EMPID = ?)
+        """
+        cursor.execute(query, (empid, empid))
+        return cursor.fetchall()
+
     # ======================
     # 🔹 Department Queries
     # ======================
@@ -430,5 +443,24 @@ class Database:
         cursor.execute(query, params)
         return cursor.fetchall()
 
+    @classmethod
+    def get_active_timer_for_user(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            SELECT TIMEID, PROJECTID, START_TIME, NOTES
+            FROM time
+            WHERE EMPID = ? AND STOP_TIME IS NULL AND MANUAL_ENTRY = 0
+            ORDER BY START_TIME DESC
+            LIMIT 1
+        ''', (empid,))
+        return cursor.fetchone()
 
+    @classmethod
+    def start_time_entry(cls, timeid, empid, projectid, start_time, notes):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
+            VALUES (?, ?, ?, ?, NULL, ?, 0)
+        ''', (timeid, empid, projectid, start_time, notes))
+        cls.commit()
 
