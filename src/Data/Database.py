@@ -151,47 +151,91 @@ class Database:
         result = cursor.fetchone()
         return result[0] if result else None
 
-    # ****************************
-    # written on 5.4.2025 - EAB
-    # ****************************
 
     @classmethod
-    def deactivate_project(cls, projectid):
-        """
-        Deactivates a project by setting PROJECT_ACTIVE to 0.
+    def get_visible_employees(cls, current_empid, current_role):
+        cursor = cls.get_cursor()
 
-        Args:
-            projectid: The ID of the project to deactivate
-        """
+        if current_role == "admin":
+            cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
+            return cursor.fetchall()
+
+        if current_role == "manager":
+            query = '''
+                SELECT EMPID, FIRST_NAME, LAST_NAME 
+                FROM employee_table 
+                WHERE EMP_ACTIVE = 1 AND (
+                    MGR_EMPID = ? OR 
+                    DPTID = (SELECT DPTID FROM employee_table WHERE EMPID = ?)
+                )
+            '''
+            cursor.execute(query, (current_empid, current_empid))
+            return cursor.fetchall()
+
+        if current_role == "project_manager":
+            cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
+            return cursor.fetchall()
+
+        return []
+
+    @classmethod
+    def get_project_ids_for_employee(cls, empid):
         cursor = cls.get_cursor()
         cursor.execute('''
-            UPDATE projects
-            SET PROJECT_ACTIVE = 0
-            WHERE PROJECTID = ?
-        ''', (projectid,))
+            SELECT PROJECT_ID FROM employee_projects
+            WHERE EMPID = ?
+        ''', (empid,))
+        return [row[0] for row in cursor.fetchall()]
+
+    @classmethod
+    def add_employee_to_project(cls, project_id, empid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO employee_projects (PROJECT_ID, EMPID)
+            VALUES (?, ?)
+        ''', (project_id, empid))
         cls.commit()
 
     @classmethod
-    def activate_project(cls, projectid):
-        """
-        Activates a project by setting PROJECT_ACTIVE to 1.
+    def get_project_summary(cls, project_ids, start=None, end=None):
+        if not project_ids:
+            return []
 
-        Args:
-            projectid: The ID of the project to activate
-        """
+        cursor = cls.get_cursor()
+        placeholders = ','.join('?' for _ in project_ids)
+        params = list(project_ids)
+
+        query = f'''
+            SELECT 
+                p.PROJECT_NAME,
+                p.PROJECTID,
+                COUNT(DISTINCT t.EMPID) AS employee_count,
+                SUM(t.TOTAL_MINUTES) AS total_minutes
+            FROM time t
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE t.PROJECTID IN ({placeholders})
+        '''
+
+        if start:
+            query += " AND t.START_TIME >= ?"
+            params.append(start + " 00:00:00")
+        if end:
+            query += " AND t.STOP_TIME <= ?"
+            params.append(end + " 23:59:59")
+
+        query += " GROUP BY p.PROJECTID"
+
+        cursor.execute(query, params)
+        return cursor.fetchall()
+
+    @classmethod
+    def get_employees_assigned_to_project(cls, projectid):
         cursor = cls.get_cursor()
         cursor.execute('''
-            UPDATE projects
-            SET PROJECT_ACTIVE = 1
-            WHERE PROJECTID = ?
+            SELECT EMPID FROM employee_projects
+            WHERE PROJECT_ID = ?
         ''', (projectid,))
-        cls.commit()
-
-
-    # ****************************
-    # end of 5.4.2025 update - EAB
-    # ****************************
-
+        return [row[0] for row in cursor.fetchall()]
 
 
     # ======================
@@ -336,36 +380,42 @@ class Database:
         cls.commit()
 
 
-# so DemoData.py can run correctly
+    # test consolidated project reporting page below
     @classmethod
-    def erikas_add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry):
+    def get_time_entries_filtered_by_projects(cls, project_ids, selected_project=None, start_date=None, end_date=None):
         cursor = cls.get_cursor()
 
-        # Try a simple insert first
-        try:
-            cursor.execute('''
-                INSERT INTO time (EMPID, PROJECTID, START_TIME, STOP_TIME, MANUAL_ENTRY)
-                VALUES (%s, %s, %s, %s, %s)
-            ''', (empid, projectid, start_time, stop_time, manual_entry))
-            cls.commit()
-            print("Simple insert successful!")
-        except Exception as e:
-            print(f"Simple insert failed: {e}")
+        placeholders = ','.join('?' for _ in project_ids)
+        query = f'''
+            SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME,
+                   t.START_TIME, t.STOP_TIME, t.TOTAL_MINUTES, t.NOTES
+            FROM time t
+            JOIN employee_table e ON t.EMPID = e.EMPID
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE t.PROJECTID IN ({placeholders})
+        '''
+        params = list(project_ids)
 
-        # Now try with notes
-        try:
-            cursor.execute('''
-                INSERT INTO time (EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            ''', (empid, projectid, start_time, stop_time, notes, manual_entry))
-            cls.commit()
-            print("Full insert successful!")
-        except Exception as e:
-            print(f"Full insert failed: {e}")
+        if selected_project:
+            query += ' AND t.PROJECTID = ?'
+            params.append(selected_project)
 
-# ****************************
-# written on 4.29.25 - EAB
-# ****************************
+        if start_date:
+            query += ' AND t.START_TIME >= ?'
+            params.append(start_date)
+        if end_date:
+            query += ' AND t.STOP_TIME <= ?'
+            params.append(end_date)
+
+        print("🔍 Project report query:", query)
+        print("📦 Params:", params)
+
+        cursor.execute(query, params)
+        return cursor.fetchall()
+
+    # ****************************
+    # written on 4.29.25 - EAB
+    # ****************************
 
     @classmethod
     def update_notes(cls, timeid, new_notes):

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}Time Tracker{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -11,33 +12,49 @@
     <h1>{% block header %}Time Tracker{% endblock %}</h1>
 
     <div style="display: flex; justify-content: space-between; align-items: center;">
-    <nav style="flex-grow: 1;">
-        {% if session.get('empid') %}
-            <a href="/">Home</a> |
+    {% if request.path != '/' %}
+        <nav style="flex-grow: 1;">
+            {% if session.get('empid') %}
+                <a href="/">Home</a> |
 
-            {% if session['emp_role'] in ['manager', 'project_manager', 'admin'] %}
-                <a href="/report">Reporting</a> |
-                <a href="/my-time">My Time</a> |
-                <a href="/log-time">Log Time</a> |
-                <a href="/manage-projects">Projects</a> |
-                <a href="/manage-employees">Employees</a> |
+                {% if session['emp_role'] == 'manager' %}
+                    <a href="/report">Reporting</a> |
+                    <a href="/my-time">My Time</a> |
+                    <a href="/log-time">Log Time</a> |
+                    <a href="/manage-projects">Projects</a> |
+                    <a href="/manage-employees">Employees</a>
+
+                {% elif session['emp_role'] == 'project_manager' %}
+                    <a href="/project-report">Project Report</a> |
+                    <a href="/my-time">My Time</a> |
+                    <a href="/log-time">Log Time</a> |
+                    <a href="/manage-projects">Projects</a>
+
+                {% elif session['emp_role'] == 'admin' %}
+                    <a href="/report">Reporting</a> |
+                    <a href="/my-time">My Time</a> |
+                    <a href="/log-time">Log Time</a> |
+                    <a href="/manage-projects">Projects</a> |
+                    <a href="/manage-employees">Employees</a>
+
+                {% elif session['emp_role'] == 'individual' %}
+                    <a href="/my-time">My Time</a> |
+                    <a href="/log-time">Log Time</a> |
+                    <a href="/manage-projects">Projects</a>
+                {% endif %}
+
             {% else %}
-                <a href="/my-time">My Time</a> |
-                <a href="/log-time">Log Time</a> |
+                {% if request.path != '/login' %}
+                    <a href="/login">Login</a>
+                {% endif %}
             {% endif %}
 
-            <a href="/logout">Logout</a>
-        {% else %}
-            {% if request.path != '/login' %}
-                <a href="/login">Login</a>
-            {% endif %}
-        {% endif %}
-
-    </nav>
-
+        </nav>
+    {% endif %}
     {% if session.get('first_name') %}
-        <div style="padding-left: 20px; white-space: nowrap;">
-            Hi, {{ session['first_name'] }}!
+        <div style="position: absolute; top: 20px; right: 40px; white-space: nowrap;">
+            Hi, {{ session['first_name'] }}! &nbsp;
+            <a href="/logout" style="font-weight: 500; color: #0077cc;">Logout</a>
         </div>
     {% endif %}
 </div>

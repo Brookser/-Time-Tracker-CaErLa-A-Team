@@ -1,0 +1,49 @@
+{% extends "default.html" %}
+{% block title %}Project Summary{% endblock %}
+{% block header %}Aggregated Project Summary{% endblock %}
+
+{% block content %}
+<h2>Filter by Date</h2>
+<form method="POST" action="/project-summary">
+    <div class="date-range-fields">
+        <div>
+            <label for="start">Start Date:</label>
+            <input type="date" name="start" id="start" value="{{ start or '' }}">
+        </div>
+        <div>
+            <label for="end">End Date:</label>
+            <input type="date" name="end" id="end" value="{{ end or '' }}">
+        </div>
+        <div>
+            <label>&nbsp;</label>  <!-- spacer to align button -->
+            <button type="submit">Apply Filter</button>
+        </div>
+    </div>
+</form>
+
+
+
+<hr>
+
+{% if summary %}
+    <h2>Summary Results{% if start and end %} ({{ start }} to {{ end }}){% endif %}</h2>
+    <table>
+        <tr>
+            <th>Project Name</th>
+            <th>Project ID</th>
+            <th>Total Minutes</th>
+            <th>Unique Employees</th>
+        </tr>
+        {% for row in summary %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[3] or 0 }}</td>
+            <td>{{ row[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No data available for your projects.</p>
+{% endif %}
+{% endblock %}

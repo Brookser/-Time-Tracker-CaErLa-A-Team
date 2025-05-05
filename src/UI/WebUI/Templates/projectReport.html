@@ -1,0 +1,125 @@
+{% extends "default.html" %}
+{% block title %}Project Report{% endblock %}
+{% block header %}Project Report{% endblock %}
+
+{% block content %}
+
+<div class="section-header">
+    <h2>
+        {% if view_mode == 'summary' %}
+            Projects Summary View
+        {% else %}
+            Time Entries by Project View
+        {% endif %}
+    </h2>
+    <div class="view-buttons">
+        {% if view_mode != 'detailed' %}
+            <a href="/project-report?view=detailed"><button>➤ Time Entries</button></a>
+        {% endif %}
+        {% if view_mode != 'summary' %}
+            <a href="/project-report?view=summary"><button>➤ Projects Summary</button></a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="report-card">
+    {% if view_mode == "summary" %}
+        <form method="get" action="/project-report">
+            <input type="hidden" name="view" value="summary">
+
+            <div class="date-range-fields">
+                <div>
+                    <label for="start">Start Date:</label>
+                    <input type="date" name="start" id="start" value="{{ start or '' }}">
+                </div>
+                <div>
+                    <label for="end">End Date:</label>
+                    <input type="date" name="end" id="end" value="{{ end or '' }}">
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <button type="submit">Filter</button>
+                </div>
+            </div>
+        </form>
+
+        {% if summary %}
+            <table>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Total Minutes</th>
+                    <th>Employees</th>
+                </tr>
+                {% for row in summary %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[3] or 0 }}</td>
+                    <td>{{ row[2] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No data found.</p>
+        {% endif %}
+
+    {% elif view_mode == "detailed" %}
+        <form method="get" action="/project-report">
+            <input type="hidden" name="view" value="detailed">
+
+            <div class="date-range-fields">
+                <div>
+                    <label for="project">Select Project:</label>
+                    <select name="project" id="project">
+                        <option value="">-- All Projects --</option>
+                        {% for pid, name in projects %}
+                            <option value="{{ pid }}" {% if selected_project == pid %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="start">Start Date:</label>
+                    <input type="date" name="start" id="start" value="{{ start or '' }}">
+                </div>
+
+                <div>
+                    <label for="end">End Date:</label>
+                    <input type="date" name="end" id="end" value="{{ end or '' }}">
+                </div>
+
+                <div>
+                    <label>&nbsp;</label>
+                    <button type="submit">Filter</button>
+                </div>
+            </div>
+        </form>
+
+        {% if entries %}
+            <table>
+                <tr>
+                    <th>Employee</th>
+                    <th>Project</th>
+                    <th>Start</th>
+                    <th>Stop</th>
+                    <th>Minutes</th>
+                    <th>Notes</th>
+                </tr>
+                {% for e in entries %}
+                <tr>
+                    <td>{{ e[1] }} {{ e[2] }}</td>
+                    <td>{{ e[3] }}</td>
+                    <td>{{ e[4] }}</td>
+                    <td>{{ e[5] }}</td>
+                    <td>{{ e[6] }}</td>
+                    <td>{{ e[7] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No entries found.</p>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% endblock %}
+

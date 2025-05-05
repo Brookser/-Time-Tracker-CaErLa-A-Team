@@ -3,42 +3,46 @@
 {% block header %}My Time Entries{% endblock %}
 
 {% block content %}
-<a href="/todays-summary">View Today's Summary</a>
-
+<div style="display: flex; justify-content: space-between; align-items: center;">
     <h2>Filter by Date</h2>
-    <form method="GET" action="/my-time">
-        <label for="start">Start Date:</label>
-        <input type="date" name="start" id="start">
+    <a href="/todays-summary">
+        <button type="button">View Today's Summary</button>
+    </a>
+</div>
 
-        <label for="end">End Date:</label>
-        <input type="date" name="end" id="end">
+<form method="GET" action="/my-time">
+    <label for="start">Start Date:</label>
+    <input type="date" name="start" id="start">
 
-        <button type="submit">Filter</button>
-    </form>
+    <label for="end">End Date:</label>
+    <input type="date" name="end" id="end">
 
-    <hr>
+    <button type="submit">Filter</button>
+</form>
 
-    <h2>Entries</h2>
-    {% if entries %}
-        <table>
-            <tr>
-                <th>Project</th>
-                <th>Start</th>
-                <th>Stop</th>
-                <th>Notes</th>
-                <th>Minutes</th>
-            </tr>
-            {% for e in entries %}
-            <tr>
-                <td>{{ e[3] }}</td>
-                <td>{{ e[4] }}</td>
-                <td>{{ e[5] }}</td>
-                <td>{{ e[6] }}</td>
-                <td>{{ e[7] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No entries found for this time range.</p>
-    {% endif %}
+<hr>
+
+<h2>Entries</h2>
+{% if entries %}
+    <table>
+        <tr>
+            <th>Project</th>
+            <th>Start</th>
+            <th>Stop</th>
+            <th>Notes</th>
+            <th>Minutes</th>
+        </tr>
+        {% for e in entries %}
+        <tr>
+            <td>{{ e[3] }}</td>
+            <td>{{ e[4] }}</td>
+            <td>{{ e[5] }}</td>
+            <td>{{ e[6] }}</td>
+            <td>{{ e[7] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No entries found for this time range.</p>
+{% endif %}
 {% endblock %}

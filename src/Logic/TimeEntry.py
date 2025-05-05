@@ -111,5 +111,23 @@ class TimeEntry:
     def get_entries_for_empids(empids, start_date=None, end_date=None):
         return Database.get_time_entries_filtered_multiple_empids(empids, start_date, end_date)
 
+    # test consolidated project reporting page
+    @staticmethod
+    def get_entries_filtered_by_project(empid, projectid=None, start=None, end=None):
+        return Database.get_time_entries_filtered_by_project(
+            empid=empid,
+            projectid=projectid,
+            start_date=start,
+            end_date=end
+        )
 
+    # test consolidated project reporting page
+    @staticmethod
+    def get_entries_filtered_by_project_ids(project_ids, selected_project=None, start=None, end=None):
+        return Database.get_time_entries_filtered_by_projects(
+            project_ids=project_ids,
+            selected_project=selected_project,
+            start_date=start,
+            end_date=end
+        )
 
