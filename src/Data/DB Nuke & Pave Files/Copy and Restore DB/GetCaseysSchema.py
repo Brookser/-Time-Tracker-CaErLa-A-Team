@@ -4,13 +4,19 @@
 # TTfeature:        Test_01
 # Date:             04.24.2025
 # Description:      Pulls Casey's DB schema and saves it for later in a
-#                       file called time_tracker_schema_backup_20250424_111010.sql
+#                       file called time_tracker_schema_backup_20250505_123458.sql
 #                       which can be found in the 'tests' folder
 # Input:            none
-# Output:           time_tracker_schema_backup_20250424_111010.sql
+# Output:           time_tracker_schema_backup_20250505_123458.sql
 # Sources:          Project Charter - Jira Story: Tests 1 & 2
 #
 # Change Log:       - 04.24.2025: Initial setup
+#                   - 05.01.2025: changes made directly to DB via console script
+#                       by server manager; time_tracker_schema_backup_20250501_180100.sql
+#                       is now the current file
+#                   - 05.05.2025: changes made directly to DB via console script
+#                       by server manager; time_tracker_schema_backup_20250505_123458.sql
+#                       is now the current file
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************  

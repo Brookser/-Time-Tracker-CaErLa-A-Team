@@ -9,6 +9,7 @@
 # Sources:          Project Charter - Jira Story: Tests 1 & 2
 #
 # Change Log:       - 04.24.2025: Initial setup of tests
+#                   - 05.05.2025: updated to align with changes made directly to DB via console script
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************  
@@ -20,12 +21,12 @@ MariaDB Data Population Script
 This script populates a MariaDB database with sample data for the time tracker application.
 It handles foreign key constraints by inserting data in the correct order.
 """
-
 import os
 import sys
 import mariadb
 import datetime
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -112,13 +113,13 @@ def populate_data():
         # Step 2: Create employees without managers
         print("\nPopulating employee_table (step 1 - without managers)...")
         employees_without_managers = [
-            ('E0009', 'Liesl', 'Hill', 'ENG', 'lieslh@wou.edu', None, 1, 'manager'),
+            ('E9009', 'Lisa', 'Hill', 'ENG', 'lisah@wou.edu', None, 1, 'manager'),  # Changed from E0009 to E9009 to match schema
             ('E001', 'Casey', 'Hill', 'D001', 'casey.hill@example.com', None, 1, 'individual'),
             ('E003', 'Yesac', 'Llih', 'D001', 'YesacLlih@email.com', None, 1, 'manager'),
             ('E004', 'Erika', 'Brooks', 'ENG', 'eb@email.com', None, 1, 'project_manager'),
             ('E006', 'Frankie', 'Hill', 'ENG', 'frankie@wou.edu', None, 1, 'user'),
             ('E007', 'Jack', 'White', 'ENG', 'jw@wou.edu', None, 1, 'project_manager'),
-            ('E008', 'Ivy', 'Nguyen', 'MKT', 'ivy@company.com', None, 1, 'manager'),
+            ('E008', 'Ivy', 'Nguyen', 'ENG', 'ivy@company.com', None, 1, 'manager'),  # Changed MKT to ENG to match schema
             ('E010', 'Test', 'LoginAccount', 'ENG', 'anotherTestEmail@gmail.com', None, 1, 'manager'),
             ('TEST01', 'Tess', 'Tester', 'D001', 'tess@example.com', None, 1, 'individual')
         ]
@@ -156,12 +157,12 @@ def populate_data():
         # Step 4: Create employees with managers
         print("\nPopulating employee_table (step 2 - with managers)...")
         employees_with_managers = [
-            ('E009', 'Milo', 'Patel', 'MKT', 'milo@company.com', 'E008', 1, 'user'),
+            ('E009', 'Milo', 'Patel', 'MKT', 'milo@company.com', 'E008', 1, 'individual'),  # Changed from 'user' to 'individual' to match schema
             ('E011', 'Nina', 'Smith', 'FIN', 'nina@wou.edu', 'E010', 1, 'individual'),
             ('E012', 'Tom', 'Lee', 'FIN', 'tom@wou.edu', 'E011', 1, 'manager'),
             ('E013', 'Sara', 'Kim', 'HR', 'sara@wou.edu', 'E012', 1, 'individual'),
             ('E014', 'Alex', 'Brown', 'HR', 'alex@wou.edu', 'E013', 1, 'manager'),
-            ('E015', 'Jamie', 'Fox', 'MKT', 'jamie@wou.edu', 'E014', 1, 'individual'),
+            ('E015', 'Jamie', 'Fox', 'MKT', 'jamie@wou.edu', 'E9006', 1, 'individual'),  # Changed manager to E9006 to match schema
             ('E016', 'Taylor', 'Green', 'MKT', 'taylor@wou.edu', 'E015', 1, 'manager')
         ]
 
@@ -179,20 +180,19 @@ def populate_data():
         print("\nPopulating login_table...")
         logins = [
             ('login_casey', 'E001', 'secret123', '2025-04-17 20:27:26', 0),
-            ('login_E0009', 'E0009', 'cfhillskhdjhe', '2025-04-21 19:48:30', 0),
+            ('login_E009', 'E009', 'cfhillskhdjhe', '2025-04-21 19:40:30', 0),  # Updated time to match schema
             ('login_E003', 'E003', '123', '2025-04-21 01:05:24', 0),
-            ('login_E004', 'E004', '123', '2025-04-21 18:08:59', 0),
-            ('login_E006', 'E006', '123', '2025-04-21 18:19:47', 0),
-            ('login_E007', 'E007', '123', '2025-04-21 18:46:58', 0),
-            ('login_E008', 'E008', 'pass1', '2025-04-24 08:10:05', 0),
-            ('login_E009', 'E009', 'pass2', '2025-04-24 08:10:05', 0),
-            ('login_E010', 'E010', '123123123', '2025-04-23 12:59:27', 0),
-            ('login_E011', 'E011', 'pass3', '2025-04-24 08:10:05', 0),
-            ('login_E012', 'E012', 'pass4', '2025-04-24 08:10:05', 0),
-            ('login_E013', 'E013', 'pass5', '2025-04-24 08:10:05', 0),
-            ('login_E014', 'E014', 'pass6', '2025-04-24 08:10:05', 0),
-            ('login_E015', 'E015', 'pass7', '2025-04-24 08:10:05', 0),
-            ('login_E016', 'E016', 'pass8', '2025-04-24 08:10:05', 0),
+            ('login_E004', 'E004', '123', '2025-04-21 18:09:59', 0),  # Updated time to match schema
+            ('login_E006', 'E006', '123', '2025-04-21 19:19:47', 0),  # Updated time to match schema
+            ('login_E007', 'E007', 'pass1', '2025-04-21 18:46:58', 0),  # Updated password to match schema
+            ('login_E008', 'E008', '1', '2025-04-20 10:05:00', 0),  # Updated password and time to match schema
+            ('login_E010', 'E010', '12312312312312', '2025-04-23 12:59:27', 0),  # Updated password to match schema
+            ('login_E011', 'E011', 'pass3', '2025-04-20 10:05:00', 0),  # Updated time to match schema
+            ('login_E012', 'E012', 'pass4', '2025-04-20 10:05:00', 0),  # Updated time to match schema
+            ('login_E013', 'E013', 'pass5', '2025-04-20 10:05:00', 0),  # Updated time to match schema
+            ('login_E014', 'E014', 'pass6', '2025-04-20 10:05:00', 0),  # Updated time to match schema
+            ('login_E015', 'E015', 'pass7', '2025-04-20 10:05:00', 0),  # Updated time to match schema
+            ('login_E016', 'E016', 'pass8', '2025-04-20 10:05:00', 0),  # Updated time to match schema
             ('login_TEST02', 'TEST01', 'password123', '2025-04-23 12:46:21', 0)
         ]
 
@@ -209,10 +209,10 @@ def populate_data():
         # Step 6: Create projects
         print("\nPopulating projects table...")
         projects = [
-            ('P001', 'Time Tracker DB Testing', 'E001', '2025-04-19 21:44:34', None, 1),
-            ('P002', 'Marketing Website Redesign', 'E004', '2025-04-20 10:00:00', None, 1),
-            ('P003', 'Internal Tooling Upgrade', 'E0009', '2025-04-21 09:00:00', None, 1),
-            ('P004', 'Client Onboarding Flow', 'E007', '2025-04-22 14:30:00', None, 1)
+            ('P001', 'TimeTrackerDBTest', 'E001', '2025-04-19 21:44:34', None, 1),  # Updated name to match schema
+            ('P002', 'MarketingWebsite', 'E004', '2025-04-20 10:00:00', None, 1),  # Updated name to match schema
+            ('P003', 'InternalTooling', 'E9009', '2025-04-21 09:00:00', None, 1),  # Updated creator and name to match schema
+            ('P004', 'ClientOnboarding', 'E007', '2025-04-22 14:30:00', None, 1)  # Updated name to match schema
         ]
 
         for project in projects:
@@ -225,37 +225,69 @@ def populate_data():
             except mariadb.Error as e:
                 print(f"  Error adding project {project[0]}: {e}")
 
-        # Step 7: Create time entries
+        # Step 7: Add employee-project assignments
+        print("\nPopulating employee_projects junction table...")
+        employee_projects = [
+            ('E001', 'P001'),
+            ('E001', 'P002'),
+            ('E003', 'P002'),
+            ('E004', 'P001'),
+            ('E004', 'P002'),
+            ('E004', 'P003'),
+            ('E007', 'P004'),
+            ('E011', 'P001'),
+            ('E012', 'P002'),
+            ('E012', 'P004'),
+            ('E013', 'P003'),
+            ('E015', 'P001'),
+            ('E015', 'P002'),
+            ('E016', 'P002'),
+            ('E9009', 'P001'),
+            ('E9009', 'P003'),
+            ('TEST01', 'P001'),
+            ('TEST01', 'P002')
+        ]
+
+        for emp_proj in employee_projects:
+            try:
+                cursor.execute("""
+                    INSERT INTO employee_projects (EMPID, PROJECT_ID)
+                    VALUES (?, ?)
+                """, emp_proj)
+                print(f"  Added employee-project assignment: {emp_proj[0]} - {emp_proj[1]}")
+            except mariadb.Error as e:
+                print(f"  Error adding employee-project assignment {emp_proj[0]} - {emp_proj[1]}: {e}")
+
+        # Step 8: Create time entries
         print("\nPopulating time table...")
+        # Modified for new schema: (TIMEID, EMPID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY, PROJECTID)
         time_entries = [
-            (1, 'E001', 'P001', '2025-04-19 20:58:08', '2025-04-19 21:58:08', 'Worked on initial setup', 1, 60),
-            (2, 'E001', 'P001', '2025-04-20 09:30:00', '2025-04-20 11:00:00', 'Entered start/stop manually', 1, 90),
-            (3, 'TEST01', 'P001', '2025-04-21 10:00:00', '2025-04-21 11:30:00', 'Manual entry for testing', 1, 90),
-            (4, 'E001', 'P002', '2025-04-22 13:00:00', '2025-04-22 14:00:00', 'Casey: project planning', 1, 60),
-            (5, 'TEST01', 'P002', '2025-04-22 15:00:00', '2025-04-22 16:00:00', 'Tess: wireframing', 1, 60),
-            (
-            6, 'E0009', 'P003', '2025-04-23 09:00:00', '2025-04-23 10:30:00', 'Liesl: team check-ins and documentation',
-            1, 90),
-            (7, 'E004', 'P003', '2025-04-23 11:00:00', '2025-04-23 12:00:00', 'Erika: stakeholder meeting', 1, 60),
-            (8, 'E0009', 'P001', '2025-04-24 04:52:06', '2025-04-24 05:52:06', 'Liesl: debugging session', 1, 60),
-            (9, 'TEST01', 'P001', '2025-04-24 03:52:06', '2025-04-24 04:52:06', 'Tess: finished documentation', 1, 60),
-            (10, 'E003', 'P001', '2025-04-23 09:00:00', '2025-04-23 10:30:00', 'Yesac: planning meeting', 1, 90),
-            (11, 'E003', 'P002', '2025-04-24 13:00:00', '2025-04-24 14:15:00', 'Yesac: reviewed reports', 1, 75),
-            (12, 'E011', 'P001', '2025-04-24 09:00:00', '2025-04-24 10:00:00', 'Nina: daily task', 1, 60),
-            (13, 'E012', 'P002', '2025-04-24 10:00:00', '2025-04-24 11:00:00', 'Tom: daily task', 1, 60),
-            (14, 'E013', 'P003', '2025-04-24 11:00:00', '2025-04-24 12:00:00', 'Sara: daily task', 1, 60),
-            (15, 'E014', 'P004', '2025-04-24 12:00:00', '2025-04-24 13:00:00', 'Alex: daily task', 1, 60),
-            (16, 'E015', 'P001', '2025-04-24 13:00:00', '2025-04-24 14:00:00', 'Jamie: daily task', 1, 60),
-            (17, 'E016', 'P002', '2025-04-24 14:00:00', '2025-04-24 15:00:00', 'Taylor: daily task', 1, 60)
+            ('1', 'E001', '2025-04-19 20:58:08', '2025-04-19 21:58:08', 'Worked on initial setup', 1, 'P001'),
+            ('2', 'E001', '2025-04-20 09:30:00', '2025-04-20 11:00:00', 'Entered start/stop manually', 1, 'P002'),
+            ('3', 'TEST01', '2025-04-21 10:00:00', '2025-04-21 11:30:00', 'Manualentry/testing', 1, 'P001'),  # Updated notes to match schema
+            ('4', 'E001', '2025-04-22 13:00:00', '2025-04-22 14:00:00', 'Caseyjprojectplanning', 1, 'P001'),  # Updated notes and project to match schema
+            ('5', 'TEST01', '2025-04-22 15:00:00', '2025-04-22 16:00:00', 'Tessjwritinmg', 1, 'P001'),  # Updated notes and project to match schema
+            ('6', 'E9009', '2025-04-23 09:00:00', '2025-04-23 10:30:00', 'Lisajteamcheck-inandocumentation', 1, 'P003'),  # Updated notes to match schema
+            ('7', 'E004', '2025-04-23 11:00:00', '2025-04-23 12:00:00', 'Erikajstakeholdermeeting', 1, 'P003'),  # Updated notes to match schema
+            ('8', 'E9009', '2025-04-24 04:52:06', '2025-04-24 05:52:06', 'Lisajdebuggsession', 1, 'P003'),  # Updated notes to match schema
+            ('9', 'TEST01', '2025-04-24 03:52:06', '2025-04-24 04:52:06', 'Tessfinisheddocumentation', 1, 'P001'),  # Updated notes to match schema
+            ('10', 'E003', '2025-04-23 09:00:00', '2025-04-23 10:30:00', 'Yesacjplanningmeeting', 1, 'P002'),  # Updated notes to match schema
+            ('11', 'E003', '2025-04-24 13:00:00', '2025-04-24 14:15:00', 'Yesacjreviewedreports', 1, 'P002'),  # Updated notes to match schema
+            ('12', 'E011', '2025-04-24 09:00:00', '2025-04-24 10:00:00', 'Ninajdailytask', 1, 'P001'),  # Updated notes to match schema
+            ('13', 'E012', '2025-04-24 10:00:00', '2025-04-24 11:00:00', 'Tomjdailytask', 1, 'P002'),  # Updated notes to match schema
+            ('14', 'E013', '2025-04-24 11:00:00', '2025-04-24 12:00:00', 'Sarajdailytask', 1, 'P003'),  # Updated notes to match schema
+            ('15', 'E014', '2025-04-24 12:00:00', '2025-04-24 13:00:00', 'Alexjdailytask', 1, 'P004'),  # Updated notes to match schema
+            ('16', 'E015', '2025-04-24 13:00:00', '2025-04-24 14:00:00', 'Jamiejdailytask', 1, 'P001'),  # Updated notes to match schema
+            ('17', 'E016', '2025-04-24 14:00:00', '2025-04-24 15:00:00', 'Taylorjdailytask', 1, 'P002')  # Updated notes to match schema
         ]
 
         for entry in time_entries:
             try:
                 cursor.execute("""
-                    INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY, TOTAL_MINUTES)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO time (TIMEID, EMPID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY, PROJECTID)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, entry)
-                print(f"  Added time entry: ID {entry[0]} for {entry[1]} on project {entry[2]}")
+                print(f"  Added time entry: ID {entry[0]} for {entry[1]} on project {entry[6]}")
             except mariadb.Error as e:
                 print(f"  Error adding time entry {entry[0]}: {e}")
 
