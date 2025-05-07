@@ -644,8 +644,7 @@ class Database:
             query += " AND t.STOP_TIME <= ?"
             params.append(end_date)
 
-        print("🔍 Manager Query:", query)
-        print("📦 Params:", params)
+        query += " ORDER BY t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()

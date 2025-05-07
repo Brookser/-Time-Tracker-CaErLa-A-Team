@@ -35,7 +35,7 @@
             {% for project, total in project_totals.items() %}
             <tr>
                 <td>{{ project }}</td>
-                <td>{{ total }}</td>
+                <td>{{ total|format_minutes }}</td>
             </tr>
             {% endfor %}
         </table>
