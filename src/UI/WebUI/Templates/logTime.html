@@ -11,12 +11,12 @@
         <p><strong>Started:</strong> {{ active_timer[2] }}</p>
         <p><strong>Notes:</strong> {{ active_timer[3] or "—" }}</p>
 
-        <form action="{{ url_for('stop_timer') }}" method="post">
+        <form action="{{ url_for('stop_timer') }}" method="post" class="log-time-form">
             <button type="submit" class="button danger">🔴 Stop Timer</button>
         </form>
     {% else %}
         <h3>Start a New Timer</h3>
-        <form method="post" action="{{ url_for('log_time') }}">
+        <form method="post" action="{{ url_for('log_time') }}" class="log-time-form">
             <label for="project_id">Project:</label>
             <select name="project_id" id="project_id" required>
                 <option value="" disabled selected>-- Select a project --</option>

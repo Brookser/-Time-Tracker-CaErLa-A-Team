@@ -621,7 +621,6 @@ def stop_timer():
     session.pop("active_timer_id", None)
     return redirect("/log-time")
 
-
 @app.route("/logout")
 def logout():
     session.clear()
