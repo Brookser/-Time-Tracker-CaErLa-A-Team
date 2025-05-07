@@ -8,7 +8,7 @@
     <h2>Time Spent per Project</h2>
     <ul class="summary-list">
         {% for project, total in project_summary.items() %}
-            <li><strong>{{ project }}</strong>: {{ total }} minutes</li>
+            <li><strong>{{ project }}</strong>: {{ total|format_minutes }} </li>
         {% endfor %}
     </ul>
 </div>
@@ -30,7 +30,7 @@
                 <td>{{ e[4] }}</td>
                 <td>{{ e[5] }}</td>
                 <td>{{ e[6] }}</td>
-                <td>{{ e[7] }}</td>
+                <td>{{ e[7]|format_minutes }}</td>
             </tr>
             {% endfor %}
         </table>

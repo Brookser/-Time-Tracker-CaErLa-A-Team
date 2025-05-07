@@ -46,10 +46,29 @@ def format_minutes(total_minutes):
 
 @app.context_processor
 def inject_timer_state():
-    return {
-        "timer_running": "active_timer_id" in session,
-        "log_timer_url": url_for("log_time") if "active_timer_id" in session else None
-    }
+    timer_running = False
+    log_timer_url = None
+
+    try:
+        timer_id = session.get("active_timer_id") or request.cookies.get("active_timer_id")
+
+        if timer_id:
+            timer = Database.get_timer_by_timeid(timer_id)
+            if timer:
+                # If using a tuple (e.g. fetch_one), check stop_time by index
+                stop_time = timer[2]  # assuming STOP_TIME is 3rd column
+                if stop_time is None:
+                    timer_running = True
+                    log_timer_url = url_for("log_time")
+
+    except Exception as e:
+        print(f"❌ inject_timer_state error: {e}")
+
+    return dict(timer_running=timer_running, log_timer_url=log_timer_url)
+
+
+
+
 
 @app.route("/")
 def home():
@@ -191,20 +210,28 @@ def login():
 
         login_record = Login.get_by_email(email)
 
-        if login_record and login_record.get_password() == password:
-            session["empid"] = login_record.get_empid()
-            session["emp_role"] = login_record.get_role()
-
-            # Get employee details
-            employee = Database.get_employee_by_empid(login_record.get_empid())
-            if employee:
-                session["first_name"] = employee[1]  # assuming first_name is second column
-
-            return redirect("/")
-        else:
+        if not login_record or login_record.get_password() != password:
             return "❌ Invalid email or password."
 
+        session["empid"] = login_record.get_empid()
+        session["emp_role"] = login_record.get_role()
+
+        employee = Database.get_employee_by_empid(session["empid"])
+        session["first_name"] = employee[1]
+
+        active_timer = Database.get_active_timer_for_user(session["empid"])
+        if active_timer:
+            timeid = active_timer[0]
+            session["active_timer_id"] = timeid
+            resp = redirect("/")
+            resp.set_cookie("active_timer_id", timeid, max_age=12 * 3600)
+            return resp
+
+        # Default redirect if no active timer
+        return redirect("/")
+
     return render_template("login.html")
+
 
 
 @app.route("/my-time", methods=["GET"])
@@ -605,7 +632,9 @@ def log_time():
 
         session["active_timer_id"] = timeid
         flash("⏱️ Timer started!", "success")
-        return redirect(url_for("log_time"))
+        resp = redirect(url_for("log_time"))
+        resp.set_cookie("active_timer_id", timeid, max_age=8 * 3600)  # expires in 8 hours
+        return resp
 
     # Fetch user projects for dropdown
     projects = Project.get_projects_for_user(empid)
@@ -624,7 +653,9 @@ def stop_timer():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/login")
+    resp = redirect("/login")
+    resp.delete_cookie("active_timer_id")
+    return resp
 
 
 if __name__ == "__main__":

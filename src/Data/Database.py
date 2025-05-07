@@ -31,7 +31,15 @@ class Database:
     def commit(cls):
         cls.__connection.commit()
 
-# ======================
+    @classmethod
+    def fetch_one(cls, query, params=None):
+        cursor = cls.get_cursor()
+        cursor.execute(query, params or ())
+        result = cursor.fetchone()
+        cursor.close()
+        return result
+
+    # ======================
 # 🔹 Employee Queries
 # ======================
 
@@ -422,6 +430,16 @@ class Database:
 # 🔹 TimeEntry Queries
 # ======================
 
+    @staticmethod
+    def get_timer_by_timeid(timeid):
+        query = """
+            SELECT t.TIMEID, t.START_TIME, t.STOP_TIME, t.NOTES, t.PROJECTID
+            FROM time t
+            WHERE t.TIMEID = ? AND t.STOP_TIME IS NULL
+        """
+        result = Database.fetch_one(query, (timeid,))
+        return result
+
     @classmethod
     def add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes):
         cursor = cls.get_cursor()
@@ -451,7 +469,6 @@ class Database:
         if selected_project:
             query += ' AND t.PROJECTID = ?'
             params.append(selected_project)
-
         if start_date:
             query += ' AND t.START_TIME >= ?'
             params.append(start_date)
@@ -459,8 +476,7 @@ class Database:
             query += ' AND t.STOP_TIME <= ?'
             params.append(end_date)
 
-        print("🔍 Project report query:", query)
-        print("📦 Params:", params)
+        query += " ORDER BY t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
@@ -656,13 +672,7 @@ class Database:
             query += " AND t.EMPID = ?"
             params.append(empid)
 
-        if empid:
-            query += " AND t.EMPID = ?"
-            params.append(empid)
-
-        # Debug
-        print("🔍 Query:", query)
-        print("📦 Params:", params)
+        query += " ORDER BY t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
