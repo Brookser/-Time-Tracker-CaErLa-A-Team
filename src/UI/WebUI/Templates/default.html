@@ -52,9 +52,15 @@
         </nav>
     {% endif %}
     {% if session.get('first_name') %}
-        <div style="position: absolute; top: 20px; right: 40px; white-space: nowrap;">
+        <div class="user-greeting">
             Hi, {{ session['first_name'] }}! &nbsp;
-            <a href="/logout" style="font-weight: 500; color: #0077cc;">Logout</a>
+            <a href="/logout" class="logout-link">Logout</a>
+
+            {% if timer_running %}
+            <form action="{{ url_for('stop_timer') }}" method="post">
+                <button type="submit" class="stop-timer-small">⏱ Stop Timer</button>
+            </form>
+            {% endif %}
         </div>
     {% endif %}
 </div>

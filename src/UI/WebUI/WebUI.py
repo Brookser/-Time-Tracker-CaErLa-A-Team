@@ -8,9 +8,18 @@ from src.Logic.Project import Project
 from datetime import datetime, timezone
 import uuid
 
-print("🔎 Server datetime now:", datetime.now())
-
-
+# helper function to normalize minutes column in entries
+def normalize_minutes_column(entries, minute_index):
+    normalized = []
+    for entry in entries:
+        entry = list(entry)
+        try:
+            entry[minute_index] = int(entry[minute_index])
+        except (ValueError, TypeError):
+            entry[minute_index] = 0
+        normalized.append(tuple(entry))
+    return normalized
+# creates a decorator to check if user is logged in
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -23,6 +32,24 @@ def login_required(f):
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
+# reformats minutes into Xhr Ymin
+@app.template_filter('format_minutes')
+def format_minutes(total_minutes):
+    try:
+        minutes = int(total_minutes)
+    except (ValueError, TypeError):
+        return "0hr 0min"
+    hours = minutes // 60
+    remainder = minutes % 60
+    return f"{hours}hr {remainder}min"
+
+@app.context_processor
+def inject_timer_state():
+    return {
+        "timer_running": "active_timer_id" in session,
+        "log_timer_url": url_for("log_time") if "active_timer_id" in session else None
+    }
 
 @app.route("/")
 def home():
@@ -96,6 +123,7 @@ def filter_report():
     if emp_role == "individual":
         empid = session_empid
         entries = TimeEntry.get_time_entries_filtered(empid, start, end)
+        entries = normalize_minutes_column(entries, 7)
         employees = []
 
     elif emp_role == "manager":
@@ -111,10 +139,12 @@ def filter_report():
             filtered_ids = all_ids
 
         entries = TimeEntry.get_entries_for_empids(filtered_ids, start, end)
+        entries = normalize_minutes_column(entries, 7)
         employees = [emp for emp in TimeEntry.get_all_employees() if emp[0] in all_ids]
 
     else:  # future: customize for other roles like admin/project_manager
         entries = TimeEntry.get_time_entries_filtered(empid, start, end)
+        entries = normalize_minutes_column(entries, 7)
         employees = TimeEntry.get_all_employees()
 
     return render_template("report.html",
@@ -197,6 +227,7 @@ def my_time():
         )
     else:
         entries = TimeEntry.get_time_entries_filtered(empid=empid)
+        entries = normalize_minutes_column(entries, 7)
 
     return render_template("myTime.html", entries=entries)
 
@@ -216,6 +247,7 @@ def todays_summary():
         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
     )
+    entries = normalize_minutes_column(entries, 7)
 
     # Summarize total time by project
     for entry in entries:
@@ -252,6 +284,7 @@ def todays_summary_manager():
         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
     )
+    entries = normalize_minutes_column(entries, 7)
 
     summary = {}
     for entry in entries:
@@ -405,6 +438,7 @@ def project_report():
         start=start,
         end=end
     )
+    entries = normalize_minutes_column(entries, 6)
 
     return render_template("projectReport.html",
                            view_mode="detailed",
@@ -526,9 +560,15 @@ def project_detail(projectid):
         start_date=start + " 00:00:00" if start else None,
         end_date=end + " 23:59:59" if end else None
     )
-    entries = [e for e in entries if e[3] == project_name]
+    entries = TimeEntry.get_entries_filtered_by_project_ids(
+        project_ids=[projectid],
+        start=start,
+        end=end
+    )
+    entries = normalize_minutes_column(entries, 6)
+    print("🔍 Entries for total_minutes:", entries)
 
-    total_minutes = sum(int(e[7]) for e in entries)
+    total_minutes = sum(int(e[6]) for e in entries)
     owner_id = Database.get_project_created_by(projectid)
     owner = Database.get_employee_by_empid(owner_id)
     owner_name = f"{owner[1]} {owner[2]}" if owner else "Unknown"
@@ -578,6 +618,7 @@ def log_time():
 def stop_timer():
     empid = session.get("empid")
     Database.stop_time_entry(empid)
+    session.pop("active_timer_id", None)
     return redirect("/log-time")
 
 

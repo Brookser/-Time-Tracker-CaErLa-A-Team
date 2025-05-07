@@ -13,7 +13,7 @@
                 <h3 style="margin-top: 0;">👤 {{ emp_name }}</h3>
                 <ul style="margin-left: 0; padding-left: 1rem;">
                     {% for project, minutes in projects.items() %}
-                        <li><strong>{{ project }}</strong>: {{ minutes }} minutes</li>
+                        <li><strong>{{ project }}</strong>: {{ minutes|format_minutes }} </li>
                     {% endfor %}
                 </ul>
             </div>
