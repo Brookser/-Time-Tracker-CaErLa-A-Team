@@ -1,0 +1,67 @@
+{% extends "default.html" %}
+{% block title %}Project Detail{% endblock %}
+{% block header %}Project: {{ project_name }}{% endblock %}
+
+{% block content %}
+
+<div class="report-card">
+    <form method="get">
+        <div class="date-range-fields">
+            <div>
+                <label for="start">Start Date:</label>
+                <input type="date" name="start" id="start" value="{{ start or '' }}">
+            </div>
+            <div>
+                <label for="end">End Date:</label>
+                <input type="date" name="end" id="end" value="{{ end or '' }}">
+            </div>
+            <div>
+                <label>&nbsp;</label>
+                <button type="submit">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="project-team-details">
+        <h3>Total Time Logged:</h3>
+            <p>{{ total_minutes }} minutes</p>
+        <h4>Project Owner:</h4>
+            <p>{{ owner_name }}</p>
+        <h4>Team Members:</h4>
+        {% if team %}
+            <ul>
+                {% for person in team %}
+                    <li>{{ person[1] }} {{ person[2] }} ({{ person[0] }})</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No team members found.</p>
+        {% endif %}
+    </div>
+
+    {% if entries %}
+        <h4 style="margin-top: 30px;">Time Entries</h4>
+        <table>
+            <tr>
+                <th>Employee</th>
+                <th>Start Time</th>
+                <th>Stop Time</th>
+                <th>Minutes</th>
+                <th>Notes</th>
+            </tr>
+            {% for e in entries %}
+            <tr>
+                <td>{{ e[1] }} {{ e[2] }}</td>
+                <td>{{ e[4] }}</td>
+                <td>{{ e[5] }}</td>
+                <td>{{ e[6] }}</td>
+                <td>{{ e[7] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No time entries found for this project.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

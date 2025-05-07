@@ -372,44 +372,47 @@ def project_report():
     if role != "project_manager":
         return redirect("/")
 
-    # Toggle between views
-    view_mode = request.args.get("view", "detailed")  # default to detailed
+    # Determine view
+    view_mode = request.args.get("view", "detailed")
 
-    # only get projects the PM *owns* (created_by = empid)
     all_projects = Database.get_all_projects()
-    owned_projects = [proj for proj in all_projects if Database.get_project_created_by(proj[0]) == empid]
-    owned_project_ids = [proj[0] for proj in owned_projects]
+    owned_projects = [p for p in all_projects if Database.get_project_created_by(p[0]) == empid]
+    assigned_ids = Database.get_project_ids_for_employee(empid)
+
+    # Team projects = projects they're assigned to but don't own
+    team_projects = [p for p in all_projects if p[0] in assigned_ids and p not in owned_projects]
+    team_ids = [p[0] for p in team_projects]
 
     if view_mode == "summary":
-        start = request.args.get("start")
-        end = request.args.get("end")
-        summary = Database.get_project_summary(project_ids=owned_project_ids, start=start, end=end)
+        selected_project = request.args.get("project")
+        summary_ids = [selected_project] if selected_project else team_ids
+
+        summary = Database.get_project_summary(project_ids=summary_ids)
         return render_template("projectReport.html",
                                view_mode="summary",
                                summary=summary,
-                               start=start,
-                               end=end)
+                               team_projects=team_projects,
+                               selected_project=selected_project)
 
-    else:  # detailed view
-        project_filter = request.args.get("project")
-        start = request.args.get("start")
-        end = request.args.get("end")
+    # detailed view unchanged
+    project_filter = request.args.get("project")
+    start = request.args.get("start")
+    end = request.args.get("end")
 
-        entries = TimeEntry.get_entries_filtered_by_project_ids(
-            project_ids=owned_project_ids,
-            selected_project=project_filter,
-            start=start,
-            end=end
-        )
+    entries = TimeEntry.get_entries_filtered_by_project_ids(
+        project_ids=[p[0] for p in owned_projects],
+        selected_project=project_filter,
+        start=start,
+        end=end
+    )
 
-        return render_template("projectReport.html",
-                               view_mode="detailed",
-                               projects=owned_projects,
-                               entries=entries,
-                               selected_project=project_filter,
-                               start=start,
-                               end=end)
-
+    return render_template("projectReport.html",
+                           view_mode="detailed",
+                           projects=owned_projects,
+                           entries=entries,
+                           selected_project=project_filter,
+                           start=start,
+                           end=end)
 
 @app.route("/my-projects")
 @login_required
@@ -506,6 +509,38 @@ def project_summary():
     summary = Database.get_project_summary(project_ids=all_project_ids, start=start, end=end)
 
     return render_template("projectSummary.html", summary=summary, start=start, end=end)
+
+@app.route("/project-detail/<projectid>")
+@login_required
+def project_detail(projectid):
+    # basic data for now, reuse existing functions
+    project_name = next((name for pid, name in Database.get_all_projects() if pid == projectid), "Unknown Project")
+    entries = TimeEntry.get_entries_filtered_by_project_ids(project_ids=[projectid])
+    team = Database.get_employees_assigned_to_project(projectid)
+    team_info = [Database.get_employee_by_empid(empid) for empid in team]
+
+    start = request.args.get("start")
+    end = request.args.get("end")
+    entries = TimeEntry.get_time_entries_filtered(
+        empid=None,
+        start_date=start + " 00:00:00" if start else None,
+        end_date=end + " 23:59:59" if end else None
+    )
+    entries = [e for e in entries if e[3] == project_name]
+
+    total_minutes = sum(int(e[7]) for e in entries)
+    owner_id = Database.get_project_created_by(projectid)
+    owner = Database.get_employee_by_empid(owner_id)
+    owner_name = f"{owner[1]} {owner[2]}" if owner else "Unknown"
+
+    return render_template("projectDetail.html",
+                       projectid=projectid,
+                       owner_name=owner_name,
+                       team=team_info,
+                       total_minutes=total_minutes,
+                       entries=entries,
+                       start=start,
+                       end=end)
 
 @app.route("/log-time", methods=["GET", "POST"])
 @login_required
