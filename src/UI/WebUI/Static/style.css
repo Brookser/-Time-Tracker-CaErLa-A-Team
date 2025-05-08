@@ -387,6 +387,10 @@ label.member-select {
 
 .user-greeting form {
     margin-top: 4px;
+    margin-bottom: 0;
+    background-color: rgba(255, 255, 255, 0);
+    border: none;
+    box-shadow: none;
 }
 
 .stop-timer-small {
