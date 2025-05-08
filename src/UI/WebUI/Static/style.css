@@ -405,7 +405,7 @@ label.member-select {
 }
 
 .user-greeting form button.stop-timer-small {
-    margin-top: 0;       /* override any default margin */
+    margin-top: 0;
     padding: 4px 10px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -415,11 +415,13 @@ label.member-select {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    box-shadow: rgba(46, 46, 46, 0.2) -1px 2px 5px 2px;
 }
 
 .user-greeting form button.stop-timer-small:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.09);
     transform: translateY(1.5px);
+    background-color: #ad0000;
 }
 
 .logout-link {
