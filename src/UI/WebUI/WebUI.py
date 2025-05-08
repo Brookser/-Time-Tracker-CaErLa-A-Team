@@ -648,7 +648,7 @@ def stop_timer():
     empid = session.get("empid")
     Database.stop_time_entry(empid)
     session.pop("active_timer_id", None)
-    return redirect("/log-time")
+    return redirect("/my-time")
 
 @app.route("/logout")
 def logout():
