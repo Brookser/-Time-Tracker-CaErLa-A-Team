@@ -127,7 +127,7 @@
                     <td>{{ e[1] }} {{ e[2] }}</td>
                     <td>{{ e[3] }}</td>
                     <td>{{ e[4] }}</td>
-                    <td>{{ e[5] }}</td>
+                    <td>{{ e[5] if e[5] else '---' }}</td>
                     <td>{{ e[6]|format_minutes }}</td>
                     <td>{{ e[7] }}</td>
                 </tr>
