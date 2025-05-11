@@ -1,1 +1,0 @@
-[{"column_name": "DPTID", "data_type": "varchar", "column_type": "varchar(20)"}, {"column_name": "DPT_NAME", "data_type": "varchar", "column_type": "varchar(100)"}, {"column_name": "MANAGERID", "data_type": "varchar", "column_type": "varchar(20)"}, {"column_name": "DPT_ACTIVE", "data_type": "tinyint", "column_type": "tinyint(1)"}]

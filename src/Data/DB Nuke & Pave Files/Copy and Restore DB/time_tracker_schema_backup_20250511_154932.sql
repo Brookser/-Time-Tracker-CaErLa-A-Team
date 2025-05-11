@@ -1,5 +1,5 @@
 -- MariaDB Schema Backup for database: time_tracker
--- Generated on: 2025-05-01 18:01:00
+-- Generated on: 2025-05-11 15:49:32
 -- This script contains all necessary information to recreate the database structure
 
 -- Database recreation statement
@@ -100,28 +100,28 @@ CREATE TABLE `time` (
   `TIMEID` varchar(20) NOT NULL,
   `EMPID` varchar(20) NOT NULL,
   `START_TIME` datetime NOT NULL,
-  `STOP_TIME` datetime NOT NULL,
+  `STOP_TIME` datetime DEFAULT NULL,
   `NOTES` text DEFAULT NULL,
   `MANUAL_ENTRY` tinyint(1) DEFAULT 0,
-  `TOTAL_MINUTES` int(11) GENERATED ALWAYS AS (timestampdiff(MINUTE,`START_TIME`,`STOP_TIME`)) STORED,
   `PROJECTID` varchar(30) NOT NULL DEFAULT 'TEMP_PROJECT',
+  `TOTAL_MINUTES` int(11) GENERATED ALWAYS AS (timestampdiff(MINUTE,`START_TIME`,`STOP_TIME`)) STORED,
   PRIMARY KEY (`TIMEID`),
   KEY `EMPID` (`EMPID`),
   KEY `START_TIME` (`START_TIME`),
   KEY `STOP_TIME` (`STOP_TIME`),
-  KEY `fk_time_project` (`PROJECTID`),
+  KEY `fk_time_new_project` (`PROJECTID`),
   CONSTRAINT `fk_time_employee` FOREIGN KEY (`EMPID`) REFERENCES `employee_table` (`EMPID`) ON UPDATE CASCADE,
   CONSTRAINT `fk_time_project` FOREIGN KEY (`PROJECTID`) REFERENCES `projects` (`PROJECTID`),
   CONSTRAINT `chk_time_valid` CHECK (`STOP_TIME` > `START_TIME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Table data statistics
--- Table `department`: ~10 rows, Data: 0.02MB, Indexes: 0.02MB
--- Table `employee_projects`: ~46 rows, Data: 0.02MB, Indexes: 0.03MB
+-- Table `department`: ~12 rows, Data: 0.02MB, Indexes: 0.02MB
+-- Table `employee_projects`: ~98 rows, Data: 0.02MB, Indexes: 0.03MB
 -- Table `employee_table`: ~40 rows, Data: 0.02MB, Indexes: 0.05MB
 -- Table `login_table`: ~40 rows, Data: 0.02MB, Indexes: 0.02MB
--- Table `projects`: ~37 rows, Data: 0.02MB, Indexes: 0.03MB
--- Table `time`: ~47 rows, Data: 0.02MB, Indexes: 0.06MB
+-- Table `projects`: ~84 rows, Data: 0.02MB, Indexes: 0.03MB
+-- Table `time`: ~249 rows, Data: 0.05MB, Indexes: 0.06MB
 
 -- Triggers
 
@@ -169,20 +169,6 @@ CREATE DEFINER=`ebrooks23`@`%` TRIGGER before_insert_project
                     END IF;
                 END$$
 
--- Structure for trigger `before_insert_time`
-DROP TRIGGER IF EXISTS `before_insert_time`$$
-CREATE DEFINER=`ebrooks23`@`%` TRIGGER before_insert_time
-                BEFORE INSERT ON time
-                FOR EACH ROW
-                BEGIN
-                    DECLARE next_id INT;
-                    IF NEW.TIMEID IS NULL OR NEW.TIMEID = '' THEN
-                        SET next_id = (SELECT IFNULL(MAX(SUBSTRING(TIMEID, 2) + 0), 1000) + 1
-                                    FROM time);
-                        SET NEW.TIMEID = CONCAT('T', next_id);
-                    END IF;
-                END$$
-
 DELIMITER ;
 
 -- User privileges (current connection user only)
@@ -212,7 +198,7 @@ DELIMITER ;
 -- INDEX: projects.CREATED_BY (CREATED_BY)
 -- INDEX: projects.PRIOR_PROJECTID (PRIOR_PROJECTID)
 -- INDEX: time.EMPID (EMPID)
--- INDEX: time.fk_time_project (PROJECTID)
+-- INDEX: time.fk_time_new_project (PROJECTID)
 -- INDEX: time.START_TIME (START_TIME)
 -- INDEX: time.STOP_TIME (STOP_TIME)
 

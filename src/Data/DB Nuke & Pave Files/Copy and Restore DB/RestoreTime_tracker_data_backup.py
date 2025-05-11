@@ -9,9 +9,11 @@
 # Output:           confirmation message
 #
 # Change Log:       - 05.05.2025: Initial setup
+#                   - 05.11.2025: updated to disable foreign key checks during data insertion
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************  
+
 
 import os
 import sys
@@ -74,7 +76,7 @@ def find_latest_backup():
     Find the most recent backup directory
     """
     # Look for directories matching the backup pattern
-    backup_dirs = glob.glob("time_tracker_data_backup_*")
+    backup_dirs = glob.glob("*_data_backup_*")
 
     if not backup_dirs:
         print("Error: No backup directories found.")
@@ -94,7 +96,15 @@ def determine_table_order(backup_dir):
     Determine the correct order to restore tables based on dependencies
     """
     # Read dependency information from the backup
-    with open(os.path.join(backup_dir, "table_dependencies.json"), 'r') as f:
+    dependency_file = os.path.join(backup_dir, "table_dependencies.json")
+    if not os.path.exists(dependency_file):
+        print(f"Warning: Dependencies file not found at {dependency_file}")
+        # If no dependencies file, read metadata to get all tables
+        with open(os.path.join(backup_dir, "backup_metadata.json"), 'r') as f:
+            metadata = json.load(f)
+        return [table["name"] for table in metadata["tables"]]
+
+    with open(dependency_file, 'r') as f:
         dependencies = json.load(f)
 
     # Read metadata to get all tables
@@ -147,7 +157,29 @@ def determine_table_order(backup_dir):
     return restoration_order
 
 
-def restore_table_data(backup_dir, tables_to_restore=None, disable_checks=False):
+def handle_generated_columns(cursor, table):
+    """
+    Check for generated columns in a table and return their names
+    """
+    try:
+        cursor.execute("""
+            SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = %s
+              AND GENERATION_EXPRESSION IS NOT NULL
+        """, (table,))
+
+        generated_columns = [row[0] for row in cursor.fetchall()]
+        if generated_columns:
+            print(f"  Detected generated columns in {table}: {', '.join(generated_columns)}")
+        return generated_columns
+    except mariadb.Error as e:
+        print(f"  Warning: Could not check for generated columns: {e}")
+        return []
+
+
+def restore_table_data(backup_dir, tables_to_restore=None, disable_checks=True):  # Changed default to True
     """
     Function to restore database from a backup directory
     """
@@ -172,11 +204,10 @@ def restore_table_data(backup_dir, tables_to_restore=None, disable_checks=False)
         # Report on tables to be restored
         print(f"\nWill restore tables in this order: {', '.join(restoration_order)}")
 
-        # Disable foreign key checks if requested
-        if disable_checks:
-            print("\nTemporarily disabling foreign key checks...")
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-            conn.autocommit = False
+        # Disable foreign key checks
+        print("\nTemporarily disabling foreign key checks due to circular dependencies...")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        conn.autocommit = False
 
         # Process each table
         for table in restoration_order:
@@ -199,13 +230,19 @@ def restore_table_data(backup_dir, tables_to_restore=None, disable_checks=False)
             print(f"\nRestoring data for table: {table}")
             print(f"  Rows to restore: {len(data)}")
 
+            # Check for generated columns
+            generated_columns = handle_generated_columns(cursor, table)
+
             # Get column information from the first row
             # This assumes consistent column structure across all rows
             columns = list(data[0].keys())
 
+            # Remove generated columns from the insertion
+            columns_to_insert = [col for col in columns if col not in generated_columns]
+
             # Build the SQL for inserting
-            placeholders = ", ".join(["?"] * len(columns))
-            column_str = ", ".join([f"`{col}`" for col in columns])
+            placeholders = ", ".join(["?"] * len(columns_to_insert))
+            column_str = ", ".join([f"`{col}`" for col in columns_to_insert])
 
             sql = f"INSERT INTO `{table}` ({column_str}) VALUES ({placeholders})"
 
@@ -223,7 +260,7 @@ def restore_table_data(backup_dir, tables_to_restore=None, disable_checks=False)
 
                     # Prepare and execute each row
                     for row in batch:
-                        values = [row[col] for col in columns]
+                        values = [row[col] for col in columns_to_insert]
                         try:
                             cursor.execute(sql, values)
                             total_inserted += 1
@@ -234,41 +271,38 @@ def restore_table_data(backup_dir, tables_to_restore=None, disable_checks=False)
                             elif errors == 6:
                                 print("    Additional errors suppressed...")
 
-                    # Commit the batch
-                    if not disable_checks:
-                        conn.commit()
-
                 except mariadb.Error as e:
                     print(f"  Error processing batch: {e}")
-                    if not disable_checks:
-                        conn.rollback()
                     errors += 1
 
             # Report on the table
             print(f"  Inserted {total_inserted} rows with {errors} errors")
 
-        # Re-enable foreign key checks and commit if they were disabled
-        if disable_checks:
-            print("\nRe-enabling foreign key checks...")
-            conn.commit()
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-            conn.autocommit = True
+        # Commit all changes
+        print("\nCommitting all changes...")
+        conn.commit()
+
+        # Re-enable foreign key checks
+        print("Re-enabling foreign key checks...")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.autocommit = True
 
         print("\nDatabase restoration complete!")
 
     except Exception as e:
         print(f"Error during database restoration: {e}")
-        if disable_checks:
+        try:
             conn.rollback()
+        except:
+            pass
         sys.exit(1)
     finally:
         # Make sure foreign key checks are re-enabled even if an error occurs
-        if disable_checks:
-            try:
-                cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-                conn.autocommit = True
-            except:
-                pass
+        try:
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+            conn.autocommit = True
+        except:
+            pass
 
         cursor.close()
         conn.close()
@@ -279,7 +313,8 @@ if __name__ == "__main__":
     parser.add_argument('backup_dir', help='Directory containing backup files (default: auto-detect latest)',
                         nargs='?', default=None)
     parser.add_argument('-t', '--tables', help='Specific tables to restore (comma-separated)', type=str)
-    parser.add_argument('-d', '--disable-fk', help='Disable foreign key checks during restoration', action='store_true')
+    parser.add_argument('-c', '--enable-fk', help='Enable foreign key checks during restoration (not recommended for circular dependencies)',
+                        action='store_true')
     args = parser.parse_args()
 
     # Use specified backup directory or find the latest
@@ -299,8 +334,12 @@ if __name__ == "__main__":
         print(f"Error: Backup directory {backup_dir} not found.")
         sys.exit(1)
 
-    restore_table_data(backup_dir, tables_to_restore, args.disable_fk)
+    # Note: we've inverted the logic of the disable_checks flag for better usability
+    # Now by default foreign key checks are disabled, and --enable-fk turns them on
+    restore_table_data(backup_dir, tables_to_restore, not args.enable_fk)
     print("=== Data restoration complete! ===")
+
+
 
 # **********************************************************************************************************************
 # **********************************************************************************************************************

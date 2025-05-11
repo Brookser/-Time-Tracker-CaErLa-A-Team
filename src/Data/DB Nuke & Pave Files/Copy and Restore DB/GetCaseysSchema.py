@@ -17,6 +17,8 @@
 #                   - 05.05.2025: changes made directly to DB via console script
 #                       by server manager; time_tracker_schema_backup_20250505_123458.sql
 #                       is now the current file
+#                   - 5.11.2025: File name changes will no longer be tracked as all restore
+#                       files have been updated to find the most recent copy to work with
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************  
