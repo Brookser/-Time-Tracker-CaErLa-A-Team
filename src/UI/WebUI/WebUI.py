@@ -380,49 +380,6 @@ def create_project():
 
     return render_template("createProject.html", eligible_employees=eligible_employees)
 
-# @app.route("/project-report", methods=["GET", "POST"])
-# @login_required
-# def project_report():
-#     empid = session.get("empid")
-#     role = session.get("emp_role")
-#
-#     if role != "project_manager":
-#         return redirect("/")
-#
-#     # Projects created or assigned
-#     created = [pid for pid, _ in Database.get_all_projects()
-#                if Database.get_project_created_by(pid) == empid]
-#     assigned = Database.get_project_ids_for_employee(empid)
-#     all_visible_project_ids = list(set(created + assigned))
-#
-#     all_projects = [
-#         (pid, name) for pid, name in Database.get_all_projects()
-#         if pid in all_visible_project_ids
-#     ]
-#
-#     selected_project = request.form.get("project_id")
-#     start = request.form.get("start")
-#     end = request.form.get("end")
-#
-#     entries = []
-#
-#     if selected_project:
-#         if start:
-#             start += " 00:00:00"
-#         if end:
-#             end += " 23:59:59"
-#
-#         entries = TimeEntry.get_time_entries_filtered(
-#             start_date=start if start else None,
-#             end_date=end if end else None
-#         )
-#         entries = [e for e in entries if e[3] == next(name for pid, name in all_projects if pid == selected_project)]
-#
-#     return render_template("projectReport.html",
-#                            projects=all_projects,
-#                            entries=entries,
-#                            selected_project=selected_project)
-
 @app.route("/project-report", methods=["GET", "POST"])
 @login_required
 def project_report():
@@ -444,6 +401,18 @@ def project_report():
     team_ids = [p[0] for p in team_projects]
 
     if view_mode == "summary":
+        # Get all projects and relevant user IDs
+        all_projects = Database.get_all_projects()
+        assigned_ids = Database.get_project_ids_for_employee(empid)
+
+        # Filter down to team projects: user is assigned AND at least one other member exists
+        team_projects = []
+        for pid, name in all_projects:
+            members = Database.get_employees_assigned_to_project(pid)
+            if empid in members and len(members) > 1:
+                team_projects.append((pid, name))
+
+        team_ids = [p[0] for p in team_projects]
         selected_project = request.args.get("project")
         summary_ids = [selected_project] if selected_project else team_ids
 
