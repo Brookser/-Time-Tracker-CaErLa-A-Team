@@ -476,7 +476,7 @@ class Database:
             query += ' AND t.STOP_TIME <= ?'
             params.append(end_date)
 
-        query += " ORDER BY t.STOP_TIME DESC"
+        query += " ORDER BY t.STOP_TIME IS NOT NULL, t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
@@ -644,7 +644,7 @@ class Database:
             query += " AND t.STOP_TIME <= ?"
             params.append(end_date)
 
-        query += " ORDER BY t.STOP_TIME DESC"
+        query += " ORDER BY t.STOP_TIME IS NOT NULL, t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
@@ -671,7 +671,7 @@ class Database:
             query += " AND t.EMPID = ?"
             params.append(empid)
 
-        query += " ORDER BY t.STOP_TIME DESC"
+        query += " ORDER BY t.STOP_TIME IS NOT NULL, t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
