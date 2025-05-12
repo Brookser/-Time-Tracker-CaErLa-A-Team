@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="section-header">
-    <h2>
+    <h2 class="tab-heading">
         {% if view_mode == 'summary' %}
             Projects Summary View
         {% else %}
@@ -14,10 +14,14 @@
     </h2>
     <div class="view-buttons">
         {% if view_mode != 'detailed' %}
-            <a href="/project-report?view=detailed"><button>➤ Time Entries</button></a>
+            <a href="/project-report?view=detailed">
+                <button class="tab-button">➤ Time Entries</button>
+            </a>
         {% endif %}
         {% if view_mode != 'summary' %}
-            <a href="/project-report?view=summary"><button>➤ Projects Summary</button></a>
+            <a href="/project-report?view=summary">
+                <button class="tab-button">➤ Projects Summary</button>
+            </a>
         {% endif %}
     </div>
 </div>
@@ -26,15 +30,15 @@
     {% if view_mode == "summary" %}
         <form method="get" action="/project-report">
             <input type="hidden" name="view" value="summary">
-
             <div class="date-range-fields">
                 <div>
-                    <label for="start">Start Date:</label>
-                    <input type="date" name="start" id="start" value="{{ start or '' }}">
-                </div>
-                <div>
-                    <label for="end">End Date:</label>
-                    <input type="date" name="end" id="end" value="{{ end or '' }}">
+                    <label for="project">Select Project:</label>
+                    <select name="project" id="project">
+                        <option value="">-- All Team Projects --</option>
+                        {% for pid, name in team_projects %}
+                            <option value="{{ pid }}" {% if selected_project == pid %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div>
                     <label>&nbsp;</label>
@@ -42,6 +46,8 @@
                 </div>
             </div>
         </form>
+
+
 
         {% if summary %}
             <table>
@@ -52,11 +58,21 @@
                 </tr>
                 {% for row in summary %}
                 <tr>
-                    <td>{{ row[0] }}</td>
-                    <td>{{ row[3] or 0 }}</td>
+                    <td>
+                        <a href="{{ url_for('project_detail', projectid=row[1]) }}">
+                        {{ row[0] }}
+                        </a>
+                    </td>
+                    <td>{{ (row[3] or 0)|format_minutes }}</td>
                     <td>{{ row[2] }}</td>
                 </tr>
                 {% endfor %}
+                <tr class="summary-row">
+                    <td>Total</td>
+                    <td>
+                        {{ (summary | sum(attribute=3))|format_minutes }}
+                    </td>
+                </tr>
             </table>
         {% else %}
             <p>No data found.</p>
@@ -104,16 +120,23 @@
                     <th>Minutes</th>
                     <th>Notes</th>
                 </tr>
+                {% set total_minutes = entries | sum(attribute=6) %}
+
                 {% for e in entries %}
                 <tr>
                     <td>{{ e[1] }} {{ e[2] }}</td>
                     <td>{{ e[3] }}</td>
                     <td>{{ e[4] }}</td>
-                    <td>{{ e[5] }}</td>
-                    <td>{{ e[6] }}</td>
+                    <td>{{ e[5] if e[5] else '---' }}</td>
+                    <td>{{ e[6]|format_minutes }}</td>
                     <td>{{ e[7] }}</td>
                 </tr>
                 {% endfor %}
+                <tr style="font-weight: bold;">
+                    <td colspan="4">Total</td>
+                    <td>{{ total_minutes|format_minutes }}</td>
+                    <td></td>
+                </tr>
             </table>
         {% else %}
             <p>No entries found.</p>

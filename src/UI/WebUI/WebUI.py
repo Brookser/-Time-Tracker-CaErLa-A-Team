@@ -1,14 +1,25 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
 from src.Logic.TimeEntry import TimeEntry
 from src.Data.Database import Database
 from src.Logic.Login import Login
 from src.Logic.Employee import Employee
-from datetime import datetime
+from src.Logic.Project import Project
+from datetime import datetime, timezone
+import uuid
 
-print("🔎 Server datetime now:", datetime.now())
-
-
+# helper function to normalize minutes column in entries
+def normalize_minutes_column(entries, minute_index):
+    normalized = []
+    for entry in entries:
+        entry = list(entry)
+        try:
+            entry[minute_index] = int(entry[minute_index])
+        except (ValueError, TypeError):
+            entry[minute_index] = 0
+        normalized.append(tuple(entry))
+    return normalized
+# creates a decorator to check if user is logged in
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -22,13 +33,42 @@ def login_required(f):
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+# reformats minutes into Xhr Ymin
+@app.template_filter('format_minutes')
+def format_minutes(total_minutes):
+    try:
+        minutes = int(total_minutes)
+    except (ValueError, TypeError):
+        return "0hr 0min"
+    hours = minutes // 60
+    remainder = minutes % 60
+    return f"{hours}hr {remainder}min"
 
-# @app.route("/")
-# def home():
-#     menu_choices = {
-#         "/report": "View Time Report"
-#     }
-#     return render_template("index.html", menu_choices=menu_choices)
+@app.context_processor
+def inject_timer_state():
+    timer_running = False
+    log_timer_url = None
+
+    try:
+        timer_id = session.get("active_timer_id") or request.cookies.get("active_timer_id")
+
+        if timer_id:
+            timer = Database.get_timer_by_timeid(timer_id)
+            if timer:
+                # If using a tuple (e.g. fetch_one), check stop_time by index
+                stop_time = timer[2]  # assuming STOP_TIME is 3rd column
+                if stop_time is None:
+                    timer_running = True
+                    log_timer_url = url_for("log_time")
+
+    except Exception as e:
+        print(f"❌ inject_timer_state error: {e}")
+
+    return dict(timer_running=timer_running, log_timer_url=log_timer_url)
+
+
+
+
 
 @app.route("/")
 def home():
@@ -102,6 +142,7 @@ def filter_report():
     if emp_role == "individual":
         empid = session_empid
         entries = TimeEntry.get_time_entries_filtered(empid, start, end)
+        entries = normalize_minutes_column(entries, 7)
         employees = []
 
     elif emp_role == "manager":
@@ -117,10 +158,12 @@ def filter_report():
             filtered_ids = all_ids
 
         entries = TimeEntry.get_entries_for_empids(filtered_ids, start, end)
+        entries = normalize_minutes_column(entries, 7)
         employees = [emp for emp in TimeEntry.get_all_employees() if emp[0] in all_ids]
 
     else:  # future: customize for other roles like admin/project_manager
         entries = TimeEntry.get_time_entries_filtered(empid, start, end)
+        entries = normalize_minutes_column(entries, 7)
         employees = TimeEntry.get_all_employees()
 
     return render_template("report.html",
@@ -167,20 +210,28 @@ def login():
 
         login_record = Login.get_by_email(email)
 
-        if login_record and login_record.get_password() == password:
-            session["empid"] = login_record.get_empid()
-            session["emp_role"] = login_record.get_role()
-
-            # Get employee details
-            employee = Database.get_employee_by_empid(login_record.get_empid())
-            if employee:
-                session["first_name"] = employee[1]  # assuming first_name is second column
-
-            return redirect("/")
-        else:
+        if not login_record or login_record.get_password() != password:
             return "❌ Invalid email or password."
 
+        session["empid"] = login_record.get_empid()
+        session["emp_role"] = login_record.get_role()
+
+        employee = Database.get_employee_by_empid(session["empid"])
+        session["first_name"] = employee[1]
+
+        active_timer = Database.get_active_timer_for_user(session["empid"])
+        if active_timer:
+            timeid = active_timer[0]
+            session["active_timer_id"] = timeid
+            resp = redirect("/")
+            resp.set_cookie("active_timer_id", timeid, max_age=12 * 3600)
+            return resp
+
+        # Default redirect if no active timer
+        return redirect("/")
+
     return render_template("login.html")
+
 
 
 @app.route("/my-time", methods=["GET"])
@@ -203,6 +254,7 @@ def my_time():
         )
     else:
         entries = TimeEntry.get_time_entries_filtered(empid=empid)
+        entries = normalize_minutes_column(entries, 7)
 
     return render_template("myTime.html", entries=entries)
 
@@ -222,6 +274,7 @@ def todays_summary():
         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
     )
+    entries = normalize_minutes_column(entries, 7)
 
     # Summarize total time by project
     for entry in entries:
@@ -258,6 +311,7 @@ def todays_summary_manager():
         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
     )
+    entries = normalize_minutes_column(entries, 7)
 
     summary = {}
     for entry in entries:
@@ -326,49 +380,6 @@ def create_project():
 
     return render_template("createProject.html", eligible_employees=eligible_employees)
 
-# @app.route("/project-report", methods=["GET", "POST"])
-# @login_required
-# def project_report():
-#     empid = session.get("empid")
-#     role = session.get("emp_role")
-#
-#     if role != "project_manager":
-#         return redirect("/")
-#
-#     # Projects created or assigned
-#     created = [pid for pid, _ in Database.get_all_projects()
-#                if Database.get_project_created_by(pid) == empid]
-#     assigned = Database.get_project_ids_for_employee(empid)
-#     all_visible_project_ids = list(set(created + assigned))
-#
-#     all_projects = [
-#         (pid, name) for pid, name in Database.get_all_projects()
-#         if pid in all_visible_project_ids
-#     ]
-#
-#     selected_project = request.form.get("project_id")
-#     start = request.form.get("start")
-#     end = request.form.get("end")
-#
-#     entries = []
-#
-#     if selected_project:
-#         if start:
-#             start += " 00:00:00"
-#         if end:
-#             end += " 23:59:59"
-#
-#         entries = TimeEntry.get_time_entries_filtered(
-#             start_date=start if start else None,
-#             end_date=end if end else None
-#         )
-#         entries = [e for e in entries if e[3] == next(name for pid, name in all_projects if pid == selected_project)]
-#
-#     return render_template("projectReport.html",
-#                            projects=all_projects,
-#                            entries=entries,
-#                            selected_project=selected_project)
-
 @app.route("/project-report", methods=["GET", "POST"])
 @login_required
 def project_report():
@@ -378,44 +389,60 @@ def project_report():
     if role != "project_manager":
         return redirect("/")
 
-    # Toggle between views
-    view_mode = request.args.get("view", "detailed")  # default to detailed
+    # Determine view
+    view_mode = request.args.get("view", "detailed")
 
-    # only get projects the PM *owns* (created_by = empid)
     all_projects = Database.get_all_projects()
-    owned_projects = [proj for proj in all_projects if Database.get_project_created_by(proj[0]) == empid]
-    owned_project_ids = [proj[0] for proj in owned_projects]
+    owned_projects = [p for p in all_projects if Database.get_project_created_by(p[0]) == empid]
+    assigned_ids = Database.get_project_ids_for_employee(empid)
+
+    # Team projects = projects they're assigned to but don't own
+    team_projects = [p for p in all_projects if p[0] in assigned_ids and p not in owned_projects]
+    team_ids = [p[0] for p in team_projects]
 
     if view_mode == "summary":
-        start = request.args.get("start")
-        end = request.args.get("end")
-        summary = Database.get_project_summary(project_ids=owned_project_ids, start=start, end=end)
+        # Get all projects and relevant user IDs
+        all_projects = Database.get_all_projects()
+        assigned_ids = Database.get_project_ids_for_employee(empid)
+
+        # Filter down to team projects: user is assigned AND at least one other member exists
+        team_projects = []
+        for pid, name in all_projects:
+            members = Database.get_employees_assigned_to_project(pid)
+            if empid in members and len(members) > 1:
+                team_projects.append((pid, name))
+
+        team_ids = [p[0] for p in team_projects]
+        selected_project = request.args.get("project")
+        summary_ids = [selected_project] if selected_project else team_ids
+
+        summary = Database.get_project_summary(project_ids=summary_ids)
         return render_template("projectReport.html",
                                view_mode="summary",
                                summary=summary,
-                               start=start,
-                               end=end)
+                               team_projects=team_projects,
+                               selected_project=selected_project)
 
-    else:  # detailed view
-        project_filter = request.args.get("project")
-        start = request.args.get("start")
-        end = request.args.get("end")
+    # detailed view unchanged
+    project_filter = request.args.get("project")
+    start = request.args.get("start")
+    end = request.args.get("end")
 
-        entries = TimeEntry.get_entries_filtered_by_project_ids(
-            project_ids=owned_project_ids,
-            selected_project=project_filter,
-            start=start,
-            end=end
-        )
+    entries = TimeEntry.get_entries_filtered_by_project_ids(
+        project_ids=[p[0] for p in owned_projects],
+        selected_project=project_filter,
+        start=start,
+        end=end
+    )
+    entries = normalize_minutes_column(entries, 6)
 
-        return render_template("projectReport.html",
-                               view_mode="detailed",
-                               projects=owned_projects,
-                               entries=entries,
-                               selected_project=project_filter,
-                               start=start,
-                               end=end)
-
+    return render_template("projectReport.html",
+                           view_mode="detailed",
+                           projects=owned_projects,
+                           entries=entries,
+                           selected_project=project_filter,
+                           start=start,
+                           end=end)
 
 @app.route("/my-projects")
 @login_required
@@ -491,8 +518,6 @@ def manage_projects():
     return render_template("altManagerProjectTemp.html", personal=personal, team=team)
 
 
-
-
 @app.route("/project-summary", methods=["GET", "POST"])
 @login_required
 def project_summary():
@@ -515,10 +540,91 @@ def project_summary():
 
     return render_template("projectSummary.html", summary=summary, start=start, end=end)
 
+@app.route("/project-detail/<projectid>")
+@login_required
+def project_detail(projectid):
+    # basic data for now, reuse existing functions
+    project_name = next((name for pid, name in Database.get_all_projects() if pid == projectid), "Unknown Project")
+    entries = TimeEntry.get_entries_filtered_by_project_ids(project_ids=[projectid])
+    team = Database.get_employees_assigned_to_project(projectid)
+    team_info = [Database.get_employee_by_empid(empid) for empid in team]
+
+    start = request.args.get("start")
+    end = request.args.get("end")
+    entries = TimeEntry.get_time_entries_filtered(
+        empid=None,
+        start_date=start + " 00:00:00" if start else None,
+        end_date=end + " 23:59:59" if end else None
+    )
+    entries = TimeEntry.get_entries_filtered_by_project_ids(
+        project_ids=[projectid],
+        start=start,
+        end=end
+    )
+    entries = normalize_minutes_column(entries, 6)
+    print("🔍 Entries for total_minutes:", entries)
+
+    total_minutes = sum(int(e[6]) for e in entries)
+    owner_id = Database.get_project_created_by(projectid)
+    owner = Database.get_employee_by_empid(owner_id)
+    owner_name = f"{owner[1]} {owner[2]}" if owner else "Unknown"
+
+    return render_template("projectDetail.html",
+                       projectid=projectid,
+                       owner_name=owner_name,
+                       team=team_info,
+                       total_minutes=total_minutes,
+                       entries=entries,
+                       start=start,
+                       end=end)
+
+@app.route("/log-time", methods=["GET", "POST"])
+@login_required
+def log_time():
+    empid = session.get("empid")
+
+    # Check if timer is already running
+    active_timer = Database.get_active_timer_for_user(empid)
+
+    if request.method == "POST" and not active_timer:
+        project_id = request.form.get("project_id")
+        notes = request.form.get("notes", "")
+        timeid = f"t-{uuid.uuid4().hex[:8]}"
+
+        Database.start_time_entry(
+            timeid=timeid,
+            empid=empid,
+            projectid=project_id,
+            start_time=datetime.now(),
+            notes=notes
+        )
+
+        session["active_timer_id"] = timeid
+        flash("⏱️ Timer started!", "success")
+        resp = redirect(url_for("log_time"))
+        resp.set_cookie("active_timer_id", timeid, max_age=8 * 3600)  # expires in 8 hours
+        return resp
+
+    # Fetch user projects for dropdown
+    projects = Project.get_projects_for_user(empid)
+    print("📦 Projects for user:", projects)
+
+    return render_template("logTime.html", projects=projects, active_timer=active_timer)
+
+@app.route("/stop-timer", methods=["POST"])
+@login_required
+def stop_timer():
+    empid = session.get("empid")
+    Database.stop_time_entry(empid)
+    session.pop("active_timer_id", None)
+    return redirect("/my-time")
+
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/login")
+    resp = redirect("/login")
+    resp.delete_cookie("active_timer_id")
+    return resp
 
 
 if __name__ == "__main__":

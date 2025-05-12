@@ -1,9 +1,12 @@
 import mariadb
 import os
 from dotenv import load_dotenv
+import pytz
+from datetime import datetime, timezone
+
+local_tz = pytz.timezone("America/Los_Angeles")  # adjust if needed
 
 load_dotenv()
-
 
 class Database:
     __connection = None
@@ -28,7 +31,15 @@ class Database:
     def commit(cls):
         cls.__connection.commit()
 
-# ======================
+    @classmethod
+    def fetch_one(cls, query, params=None):
+        cursor = cls.get_cursor()
+        cursor.execute(query, params or ())
+        result = cursor.fetchone()
+        cursor.close()
+        return result
+
+    # ======================
 # 🔹 Employee Queries
 # ======================
 
@@ -68,28 +79,28 @@ class Database:
         cursor.execute("SELECT EMPID FROM employee_table WHERE DPTID = ?", (dptid,))
         return [row[0] for row in cursor.fetchall()]
 
-    @classmethod
-    def get_visible_employees(cls, current_empid, current_role):
-        cursor = cls.get_cursor()
-
-        if current_role == "admin":
-            cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
-            return cursor.fetchall()
-
-        if current_role == "manager":
-            query = '''
-                SELECT EMPID, FIRST_NAME, LAST_NAME 
-                FROM employee_table 
-                WHERE EMP_ACTIVE = 1 AND (
-                    MGR_EMPID = ? OR 
-                    DPTID = (SELECT DPTID FROM employee_table WHERE EMPID = ?)
-                )
-            '''
-            cursor.execute(query, (current_empid, current_empid))
-            return cursor.fetchall()
-
-        # Individual users don't need a dropdown
-        return []
+    # @classmethod
+    # def get_visible_employees(cls, current_empid, current_role):
+    #     cursor = cls.get_cursor()
+    #
+    #     if current_role == "admin":
+    #         cursor.execute("SELECT EMPID, FIRST_NAME, LAST_NAME FROM employee_table WHERE EMP_ACTIVE = 1")
+    #         return cursor.fetchall()
+    #
+    #     if current_role == "manager":
+    #         query = '''
+    #             SELECT EMPID, FIRST_NAME, LAST_NAME
+    #             FROM employee_table
+    #             WHERE EMP_ACTIVE = 1 AND (
+    #                 MGR_EMPID = ? OR
+    #                 DPTID = (SELECT DPTID FROM employee_table WHERE EMPID = ?)
+    #             )
+    #         '''
+    #         cursor.execute(query, (current_empid, current_empid))
+    #         return cursor.fetchall()
+    #
+    #     # Individual users don't need a dropdown
+    #     return []
 
     # ****************************
     # written on 5.4.2025 - EAB
@@ -150,7 +161,6 @@ class Database:
         cursor.execute("SELECT CREATED_BY FROM projects WHERE PROJECTID = ?", (projectid,))
         result = cursor.fetchone()
         return result[0] if result else None
-
 
     @classmethod
     def get_visible_employees(cls, current_empid, current_role):
@@ -236,6 +246,23 @@ class Database:
             WHERE PROJECT_ID = ?
         ''', (projectid,))
         return [row[0] for row in cursor.fetchall()]
+
+    @classmethod
+    def get_projects_by_user(cls, empid):
+        cursor = cls.get_cursor()
+        query = """
+            SELECT DISTINCT p.PROJECTID, p.PROJECT_NAME
+            FROM projects p
+            LEFT JOIN employee_projects ep ON p.PROJECTID = ep.PROJECT_ID
+            WHERE p.PROJECT_ACTIVE = 1
+              AND (p.CREATED_BY = ? OR ep.EMPID = ?)
+        """
+        cursor.execute(query, (empid, empid))
+        return cursor.fetchall()
+
+# ======================
+# 🔹 Department Queries
+# ======================
 
     # *******************************
     # written on 5.4.2025 - EAB
@@ -403,6 +430,16 @@ class Database:
 # 🔹 TimeEntry Queries
 # ======================
 
+    @staticmethod
+    def get_timer_by_timeid(timeid):
+        query = """
+            SELECT t.TIMEID, t.START_TIME, t.STOP_TIME, t.NOTES, t.PROJECTID
+            FROM time t
+            WHERE t.TIMEID = ? AND t.STOP_TIME IS NULL
+        """
+        result = Database.fetch_one(query, (timeid,))
+        return result
+
     @classmethod
     def add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes):
         cursor = cls.get_cursor()
@@ -432,7 +469,6 @@ class Database:
         if selected_project:
             query += ' AND t.PROJECTID = ?'
             params.append(selected_project)
-
         if start_date:
             query += ' AND t.START_TIME >= ?'
             params.append(start_date)
@@ -440,8 +476,7 @@ class Database:
             query += ' AND t.STOP_TIME <= ?'
             params.append(end_date)
 
-        print("🔍 Project report query:", query)
-        print("📦 Params:", params)
+        query += " ORDER BY t.STOP_TIME IS NOT NULL, t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
@@ -609,8 +644,7 @@ class Database:
             query += " AND t.STOP_TIME <= ?"
             params.append(end_date)
 
-        print("🔍 Manager Query:", query)
-        print("📦 Params:", params)
+        query += " ORDER BY t.STOP_TIME IS NOT NULL, t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
@@ -637,16 +671,43 @@ class Database:
             query += " AND t.EMPID = ?"
             params.append(empid)
 
-        if empid:
-            query += " AND t.EMPID = ?"
-            params.append(empid)
-
-        # Debug
-        print("🔍 Query:", query)
-        print("📦 Params:", params)
+        query += " ORDER BY t.STOP_TIME IS NOT NULL, t.STOP_TIME DESC"
 
         cursor.execute(query, params)
         return cursor.fetchall()
+
+    @classmethod
+    def get_active_timer_for_user(cls, empid):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            SELECT TIMEID, PROJECTID, START_TIME, NOTES
+            FROM time
+            WHERE EMPID = ? AND STOP_TIME IS NULL AND MANUAL_ENTRY = 0
+            ORDER BY START_TIME DESC
+            LIMIT 1
+        ''', (empid,))
+        return cursor.fetchone()
+
+    @classmethod
+    def start_time_entry(cls, timeid, empid, projectid, start_time, notes):
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, NOTES, MANUAL_ENTRY)
+            VALUES (?, ?, ?, ?, ?, 0)
+        ''', (timeid, empid, projectid, datetime.now(local_tz), notes))
+        cls.commit()
+
+    @classmethod
+    def stop_time_entry(cls, empid):
+        cursor = cls.get_cursor()
+        stop_time = datetime.now(local_tz)
+        cursor.execute('''
+            UPDATE time
+            SET STOP_TIME = ?
+            WHERE EMPID = ? AND STOP_TIME IS NULL
+        ''', (stop_time, empid))
+
+        cls.commit()
 
     # *******************************
     # written on 5.4.2025 - EAB
@@ -710,4 +771,3 @@ class Database:
     # ****************************
     # end of 5.4.2025 update - EAB
     # ****************************
-

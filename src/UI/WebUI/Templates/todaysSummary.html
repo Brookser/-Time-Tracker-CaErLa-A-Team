@@ -4,16 +4,17 @@
 
 {% block content %}
 
-    <div class="summary-card">
-        <h2>Time Spent per Project</h2>
-        <ul class="summary-list">
-            {% for project, total in project_summary.items() %}
-                <li><strong>{{ project }}</strong>: {{ total }} minutes</li>
-            {% endfor %}
-        </ul>
-    </div>
+<div class="report-card">
+    <h2>Time Spent per Project</h2>
+    <ul class="summary-list">
+        {% for project, total in project_summary.items() %}
+            <li><strong>{{ project }}</strong>: {{ total|format_minutes }} </li>
+        {% endfor %}
+    </ul>
+</div>
 
-    <h2>Detailed Entries</h2>
+<div class="report-card">
+    <h3>Detailed Entries</h3>
     {% if entries %}
         <table>
             <tr>
@@ -29,11 +30,13 @@
                 <td>{{ e[4] }}</td>
                 <td>{{ e[5] }}</td>
                 <td>{{ e[6] }}</td>
-                <td>{{ e[7] }}</td>
+                <td>{{ e[7]|format_minutes }}</td>
             </tr>
             {% endfor %}
         </table>
     {% else %}
         <p>No entries logged today.</p>
     {% endif %}
+</div>
+
 {% endblock %}

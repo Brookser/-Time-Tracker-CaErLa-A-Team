@@ -1,0 +1,36 @@
+{% extends "default.html" %}
+{% block title %}Log Time{% endblock %}
+{% block header %}Log Time{% endblock %}
+
+{% block content %}
+
+<div class="report-card">
+    {% if active_timer %}
+        <h3>⏱️ Timer Running</h3>
+        <p><strong>Project:</strong> {{ active_timer[1] }}</p>
+        <p><strong>Started:</strong> {{ active_timer[2] }}</p>
+        <p><strong>Notes:</strong> {{ active_timer[3] or "—" }}</p>
+
+        <form action="{{ url_for('stop_timer') }}" method="post" class="log-time-form">
+            <button type="submit" class="button danger">🔴 Stop Timer</button>
+        </form>
+    {% else %}
+        <h3>Start a New Timer</h3>
+        <form method="post" action="{{ url_for('log_time') }}" class="log-time-form">
+            <label for="project_id">Project:</label>
+            <select name="project_id" id="project_id" required>
+                <option value="" disabled selected>-- Select a project --</option>
+                {% for project in projects %}
+                    <option value="{{ project[0] }}">{{ project[1] }}</option>
+                {% endfor %}
+            </select>
+<!-- hide for sprint 5 demo, unhide for sprint 6 demo -->
+<!--            <label for="notes">Notes (optional):</label>-->
+<!--            <textarea name="notes" id="notes" rows="3"></textarea>-->
+
+            <button type="submit" class="button success">🟢 Start Timer</button>
+        </form>
+    {% endif %}
+</div>
+
+{% endblock %}
