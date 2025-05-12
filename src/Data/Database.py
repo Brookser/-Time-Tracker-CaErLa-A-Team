@@ -127,6 +127,90 @@ class Database:
     # end of 5.4.2025 update - EAB
     # ****************************
 
+    # ****************************
+    # written on 5.12.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def activate_emp(cls, empid):
+        """
+        Activates an employee by setting EMP_ACTIVE to 1.
+
+        Args:
+            empid: The employee ID to activate
+
+        Returns:
+            Boolean indicating whether the activation was successful
+
+        Raises:
+            Exception: If there was a database error during the update
+        """
+        try:
+            # First check if the employee exists
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT COUNT(*) FROM employee_table WHERE EMPID = ?", (empid,))
+            if cursor.fetchone()[0] == 0:
+                print(f"Employee ID {empid} not found")
+                return False
+
+            cursor.execute('''
+                UPDATE employee_table
+                SET EMP_ACTIVE = 1
+                WHERE EMPID = ?
+            ''', (empid,))
+            cls.commit()
+
+            # Return true if at least one row was updated
+            rows_updated = cursor.rowcount
+            return rows_updated > 0
+
+        except Exception as e:
+            print(f"Error activating employee: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            raise  # Re-raise the exception for the caller to handle
+
+    @classmethod
+    def deactivate_emp(cls, empid):
+        """
+        Deactivates an employee by setting EMP_ACTIVE to 0.
+
+        Args:
+            empid: The employee ID to deactivate
+
+        Returns:
+            Boolean indicating whether the deactivation was successful
+
+        Raises:
+            Exception: If there was a database error during the update
+        """
+        try:
+            # First check if the employee exists
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT COUNT(*) FROM employee_table WHERE EMPID = ?", (empid,))
+            if cursor.fetchone()[0] == 0:
+                print(f"Employee ID {empid} not found")
+                return False
+
+            cursor.execute('''
+                UPDATE employee_table
+                SET EMP_ACTIVE = 0
+                WHERE EMPID = ?
+            ''', (empid,))
+            cls.commit()
+
+            # Return true if at least one row was updated
+            rows_updated = cursor.rowcount
+            return rows_updated > 0
+
+        except Exception as e:
+            print(f"Error deactivating employee: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            raise  # Re-raise the exception for the caller to handle
+
+    # ****************************
+    # end of 5.12.2025 update - EAB
+    # ****************************
+
 # ======================
 # 🔹 Project Queries
 # ======================
@@ -260,10 +344,6 @@ class Database:
         cursor.execute(query, (empid, empid))
         return cursor.fetchall()
 
-# ======================
-# 🔹 Department Queries
-# ======================
-
     # *******************************
     # written on 5.4.2025 - EAB
     # *******************************
@@ -304,6 +384,110 @@ class Database:
     # end of 5.4.2025 update - EAB
     # ****************************
 
+    # ****************************
+    # written on 5.12.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def change_project_name(cls, current_projectid, new_project_name, created_by):
+        """
+        Creates a new project as a renamed version of an existing project.
+        This method performs the following operations:
+        1. Creates a new project record with the new name
+        2. Sets the current project as inactive
+        3. Links the new project to the old one
+        4. Updates references in employee_projects and time tables
+
+        Args:
+            current_projectid: The ID of the current project to be renamed
+            new_project_name: The new name for the project
+            created_by: The employee ID of the user making the change
+
+        Returns:
+            dict: A dictionary containing 'success' (bool) and 'new_projectid' (if successful)
+
+        Raises:
+            Exception: If there was a database error during the process
+        """
+        try:
+            cursor = cls.get_cursor()
+
+            # 1. Check if the current project exists
+            cursor.execute("SELECT COUNT(*) FROM projects WHERE PROJECTID = ?", (current_projectid,))
+            if cursor.fetchone()[0] == 0:
+                print(f"Project ID {current_projectid} not found")
+                return {'success': False, 'error': 'Project not found'}
+
+            # 2. Begin transaction
+            cls.__connection.autocommit = False
+
+            # 3. Generate a new project ID
+            # Note: We don't actually need to generate it manually because
+            # there's a trigger that will handle this if we provide an empty PROJECTID
+            new_projectid = ""  # The trigger will fill this in
+
+            # 4. Create new project with current project as PRIOR_PROJECTID
+            date_created = datetime.now(local_tz)
+            cursor.execute('''
+                INSERT INTO projects 
+                (PROJECTID, PROJECT_NAME, CREATED_BY, DATE_CREATED, PRIOR_PROJECTID, PROJECT_ACTIVE)
+                VALUES (?, ?, ?, ?, ?, 1)
+            ''', (new_projectid, new_project_name, created_by, date_created, current_projectid))
+
+            # 5. Get the new project ID that was generated by the trigger
+            cursor.execute("SELECT LAST_INSERT_ID()")
+            new_projectid = cursor.fetchone()[0]
+
+            # If that doesn't work because the database doesn't support LAST_INSERT_ID()
+            # Then try to get the new project ID by querying for it
+            if not new_projectid:
+                cursor.execute('''
+                    SELECT PROJECTID FROM projects 
+                    WHERE PROJECT_NAME = ? AND CREATED_BY = ? AND DATE_CREATED = ? AND PRIOR_PROJECTID = ?
+                ''', (new_project_name, created_by, date_created, current_projectid))
+                result = cursor.fetchone()
+                if result:
+                    new_projectid = result[0]
+                else:
+                    raise Exception("Failed to retrieve the newly created project ID")
+
+            # 6. Set the current project as inactive
+            cursor.execute('''
+                UPDATE projects
+                SET PROJECT_ACTIVE = 0
+                WHERE PROJECTID = ?
+            ''', (current_projectid,))
+
+            # 7. Update employee_projects table to reference the new project
+            cursor.execute('''
+                INSERT INTO employee_projects (EMPID, PROJECT_ID)
+                SELECT EMPID, ? 
+                FROM employee_projects
+                WHERE PROJECT_ID = ?
+            ''', (new_projectid, current_projectid))
+
+            # 8. Update ALL time table entries to reference the new project
+            # Updated to include all entries regardless of STOP_TIME
+            cursor.execute('''
+                UPDATE time
+                SET PROJECTID = ?
+                WHERE PROJECTID = ?
+            ''', (new_projectid, current_projectid))
+
+            # 9. Commit the transaction
+            cls.commit()
+
+            return {'success': True, 'new_projectid': new_projectid}
+
+        except Exception as e:
+            print(f"Error changing project name: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            return {'success': False, 'error': str(e)}
+
+    # ****************************
+    # end of 5.12.2025 update - EAB
+    # ****************************
+
 # ======================
 # 🔹 Department Queries
 # ======================
@@ -314,8 +498,17 @@ class Database:
         cursor.execute("SELECT * FROM department")
         return cursor.fetchall()
 
-    @classmethod
+    @classmethod   # updated on 5.12.2025
     def add_department(cls, dptid, dpt_name, manager_id=None, active=1):
+        """
+        Adds a new department to the database.
+
+        Args:
+            dptid: The department ID (can be empty - auto-generated by trigger)
+            dpt_name: The department name
+            manager_id: Optional manager ID (can be None)
+            active: Department active flag (defaults to 1)
+        """
         cursor = cls.get_cursor()
         cursor.execute('''
             INSERT INTO department (DPTID, DPT_NAME, MANAGERID, DPT_ACTIVE)
@@ -380,6 +573,33 @@ class Database:
     # end of 5.4.2025 update - EAB
     # ****************************
 
+    # ****************************
+    # written on 5.12.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def update_department_name(cls, dptid, new_dpt_name):
+        """
+        Updates the department name (DPT_NAME) for an existing department.
+
+        Args:
+            dptid: The ID of the department to update
+            new_dpt_name: The new department name to set
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE department
+            SET DPT_NAME = ?
+            WHERE DPTID = ?
+        ''', (new_dpt_name, dptid))
+        cls.commit()
+
+
+
+    # ****************************
+    # end of 5.12.2025 update - EAB
+    # ****************************
+
 # ======================
 # 🔹 Login Queries
 # ======================
@@ -425,6 +645,87 @@ class Database:
         cursor = cls.get_cursor()
         cursor.execute("SELECT * FROM employee_table WHERE EMPID = ?", (empid,))
         return cursor.fetchone()
+
+    # *******************************
+    # written on 5.12.2025 - EAB
+    # *******************************
+
+    @classmethod
+    def force_password_reset(cls, loginid):
+        """
+        Forces a password reset by setting FORCE_RESET to 1.
+
+        Args:
+            loginid: The ID of the user whose password is being reset
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE login_table
+            SET FORCE_RESET = 1
+            WHERE LOGINID = ?
+        ''', (loginid,))
+        cls.commit()
+
+    @classmethod
+    def no_force_reset(cls, loginid):
+        """
+        Negates a forced password reset by setting FORCE_RESET to 0.
+
+        Args:
+            loginid: The ID of the user needing a negation of force reset
+        """
+        cursor = cls.get_cursor()
+        cursor.execute('''
+            UPDATE login_table
+            SET FORCE_RESET = 0
+            WHERE LOGINID = ?
+        ''', (loginid,))
+        cls.commit()
+
+    @classmethod
+    def password_reset(cls, loginid, new_password):
+        """
+        Updates a user's password, sets the reset date to current time, and turns off the force reset flag.
+
+        Args:
+            loginid: The login ID of the user
+            new_password: The new (already hashed) password to set
+
+        Returns:
+            Boolean indicating whether the update was successful
+
+        Raises:
+            Exception: If there was a database error during the update
+        """
+        try:
+            # First check if the loginid exists
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT COUNT(*) FROM login_table WHERE LOGINID = ?", (loginid,))
+            if cursor.fetchone()[0] == 0:
+                print(f"Login ID {loginid} not found")
+                return False
+
+            current_time = datetime.now(local_tz)
+
+            cursor.execute('''
+                UPDATE login_table
+                SET PASSWORD = ?, LAST_RESET = ?, FORCE_RESET = 0
+                WHERE LOGINID = ?
+            ''', (new_password, current_time, loginid))
+            cls.commit()
+
+            # Return true if at least one row was updated
+            rows_updated = cursor.rowcount
+            return rows_updated > 0
+
+        except Exception as e:
+            print(f"Error resetting password: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            raise  # Re-raise the exception for the caller to handle
+
+    # ****************************
+    # end of 5.12.2025 update - EAB
+    # ****************************
 
 # ======================
 # 🔹 TimeEntry Queries
@@ -742,6 +1043,201 @@ class Database:
 
     # ****************************
     # end of 5.4.2025 update - EAB
+    # ****************************
+
+    # ****************************
+    # written on 5.12.2025 - EAB
+    # ****************************
+
+    @classmethod
+    def update_time_entry_both_times(cls, timeid, new_start_time, new_stop_time):
+        """
+        Updates both START_TIME and STOP_TIME for a time entry.
+
+        Args:
+            timeid: The ID of the time entry to update
+            new_start_time: The new start time (datetime format)
+            new_stop_time: The new stop time (datetime format)
+
+        Returns:
+            Boolean indicating whether the update was successful
+
+        Raises:
+            Exception: If there was a database error or if stop time is not after start time
+        """
+        try:
+            # Parse the datetime objects if they're strings
+            if isinstance(new_start_time, str):
+                new_start_time = datetime.strptime(new_start_time, '%Y-%m-%d %H:%M:%S')
+            if isinstance(new_stop_time, str):
+                new_stop_time = datetime.strptime(new_stop_time, '%Y-%m-%d %H:%M:%S')
+
+            # Validate that stop time is after start time
+            if new_stop_time <= new_start_time:
+                raise ValueError("Stop time must be after start time")
+
+            # First check if the time entry exists
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT COUNT(*) FROM time WHERE TIMEID = ?", (timeid,))
+            if cursor.fetchone()[0] == 0:
+                print(f"Time entry ID {timeid} not found")
+                return False
+
+            # Update the time entry
+            cursor.execute('''
+                UPDATE time
+                SET START_TIME = ?, STOP_TIME = ?, MANUAL_ENTRY = 1
+                WHERE TIMEID = ?
+            ''', (new_start_time, new_stop_time, timeid))
+            cls.commit()
+
+            # Return true if at least one row was updated
+            rows_updated = cursor.rowcount
+            return rows_updated > 0
+
+        except Exception as e:
+            print(f"Error updating time entry: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            raise  # Re-raise the exception for the caller to handle
+
+    @classmethod
+    def update_time_entry_start(cls, timeid, new_start_time):
+        """
+        Updates only the START_TIME for a time entry.
+
+        Args:
+            timeid: The ID of the time entry to update
+            new_start_time: The new start time (datetime format)
+
+        Returns:
+            Boolean indicating whether the update was successful
+
+        Raises:
+            Exception: If there was a database error or if the new start time is after the existing stop time
+        """
+        try:
+            # Parse the datetime object if it's a string
+            if isinstance(new_start_time, str):
+                new_start_time = datetime.strptime(new_start_time, '%Y-%m-%d %H:%M:%S')
+
+            # First check if the time entry exists and get the current stop time
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT STOP_TIME FROM time WHERE TIMEID = ?", (timeid,))
+            result = cursor.fetchone()
+            if not result:
+                print(f"Time entry ID {timeid} not found")
+                return False
+
+            # Check if there's a stop time and if so, validate that the new start time is before it
+            stop_time = result[0]
+            if stop_time and new_start_time >= stop_time:
+                raise ValueError("Start time must be before stop time")
+
+            # Update the time entry
+            cursor.execute('''
+                UPDATE time
+                SET START_TIME = ?, MANUAL_ENTRY = 1
+                WHERE TIMEID = ?
+            ''', (new_start_time, timeid))
+            cls.commit()
+
+            # Return true if at least one row was updated
+            rows_updated = cursor.rowcount
+            return rows_updated > 0
+
+        except Exception as e:
+            print(f"Error updating start time: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            raise  # Re-raise the exception for the caller to handle
+
+    @classmethod
+    def update_time_entry_stop(cls, timeid, new_stop_time):
+        """
+        Updates only the STOP_TIME for a time entry.
+
+        Args:
+            timeid: The ID of the time entry to update
+            new_stop_time: The new stop time (datetime format)
+
+        Returns:
+            Boolean indicating whether the update was successful
+
+        Raises:
+            Exception: If there was a database error or if the new stop time is before the existing start time
+        """
+        try:
+            # Parse the datetime object if it's a string
+            if isinstance(new_stop_time, str):
+                new_stop_time = datetime.strptime(new_stop_time, '%Y-%m-%d %H:%M:%S')
+
+            # First check if the time entry exists and get the current start time
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT START_TIME FROM time WHERE TIMEID = ?", (timeid,))
+            result = cursor.fetchone()
+            if not result:
+                print(f"Time entry ID {timeid} not found")
+                return False
+
+            # Validate that the new stop time is after the start time
+            start_time = result[0]
+            if new_stop_time <= start_time:
+                raise ValueError("Stop time must be after start time")
+
+            # Update the time entry
+            cursor.execute('''
+                UPDATE time
+                SET STOP_TIME = ?, MANUAL_ENTRY = 1
+                WHERE TIMEID = ?
+            ''', (new_stop_time, timeid))
+            cls.commit()
+
+            # Return true if at least one row was updated
+            rows_updated = cursor.rowcount
+            return rows_updated > 0
+
+        except Exception as e:
+            print(f"Error updating stop time: {e}")
+            cls.__connection.rollback()  # Rollback the transaction in case of error
+            raise  # Re-raise the exception for the caller to handle
+
+#   ***** This class method exists for an extreme edge case. Please carefully consider if this
+#           action is appropriate before proceeding *****
+    @classmethod
+    def revert_to_automated(cls, timeid):
+        """
+        Marks a time entry as non-manual by setting MANUAL_ENTRY to 0.
+        This should only be used in specific cases where an entry should
+        no longer be considered manually edited.
+
+        Args:
+            timeid: The ID of the time entry to update
+
+        Returns:
+            Boolean indicating whether the update was successful
+        """
+        try:
+            cursor = cls.get_cursor()
+            cursor.execute("SELECT COUNT(*) FROM time WHERE TIMEID = ?", (timeid,))
+            if cursor.fetchone()[0] == 0:
+                print(f"Time entry ID {timeid} not found")
+                return False
+
+            cursor.execute('''
+                UPDATE time
+                SET MANUAL_ENTRY = 0
+                WHERE TIMEID = ?
+            ''', (timeid,))
+            cls.commit()
+
+            return cursor.rowcount > 0
+
+        except Exception as e:
+            print(f"Error reverting manual entry flag: {e}")
+            cls.__connection.rollback()
+            raise
+
+    # ****************************
+    # end of 5.12.2025 update - EAB
     # ****************************
 
 # ======================
