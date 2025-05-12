@@ -1,5 +1,5 @@
 -- MariaDB Schema Backup for database: time_tracker
--- Generated on: 2025-05-11 15:36:30
+-- Generated on: 2025-05-12 11:27:30
 -- This script contains all necessary information to recreate the database structure
 
 -- Database recreation statement
@@ -121,7 +121,7 @@ CREATE TABLE `time` (
 -- Table `employee_table`: ~40 rows, Data: 0.02MB, Indexes: 0.05MB
 -- Table `login_table`: ~40 rows, Data: 0.02MB, Indexes: 0.02MB
 -- Table `projects`: ~84 rows, Data: 0.02MB, Indexes: 0.03MB
--- Table `time`: ~249 rows, Data: 0.05MB, Indexes: 0.06MB
+-- Table `time`: ~305 rows, Data: 0.06MB, Indexes: 0.06MB
 
 -- Triggers
 
