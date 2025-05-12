@@ -39,7 +39,7 @@ class Database:
         cursor.close()
         return result
 
-    # ======================
+# ======================
 # 🔹 Employee Queries
 # ======================
 
