@@ -1,0 +1,30 @@
+{
+  "database": "time_tracker",
+  "backup_date": "2025-05-12 11:26:00",
+  "tables": [
+    {
+      "name": "department",
+      "rows": 12
+    },
+    {
+      "name": "employee_projects",
+      "rows": 98
+    },
+    {
+      "name": "employee_table",
+      "rows": 40
+    },
+    {
+      "name": "login_table",
+      "rows": 40
+    },
+    {
+      "name": "projects",
+      "rows": 84
+    },
+    {
+      "name": "time",
+      "rows": 305
+    }
+  ]
+}
