@@ -50,6 +50,8 @@
 
 
         {% if summary %}
+            <h2>Summary Results{% if start and end %} ({{ start }} to {{ end }}){% endif %}</h2>
+
             <table>
                 <tr>
                     <th>Project Name</th>
@@ -77,6 +79,52 @@
         {% else %}
             <p>No data found.</p>
         {% endif %}
+        <div class="header-background">
+            <h3>Time Allocation by Project</h3>
+        </div>
+        <div class="chart-container">
+            <canvas id="projectTimeChart" style="max-width: 550px; max-height: 400px;"></canvas>
+        </div>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const ctx = document.getElementById('projectTimeChart').getContext('2d');
+                    const projectLabels = {{ summary | map(attribute=0) | list | tojson }};
+                    const timeData = {{ summary | map(attribute=3) | list | tojson }};
+
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: projectLabels,
+                            datasets: [{
+                                label: 'Total Minutes',
+                                data: timeData,
+                                backgroundColor: [
+                                    '#0077cc', '#e27ca8', '#2ecc71', '#f39c12',
+                                    '#9b59b6', '#1abc9c', '#c0392b', '#34495e',
+                                    '#2980b9', '#8e44ad', '#d35400', '#2c3e50'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'right' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percent = ((value / total) * 100).toFixed(1);
+                                            return `${context.label}: ${value} min (${percent}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            </script>
 
     {% elif view_mode == "detailed" %}
         <form method="get" action="/project-report">
