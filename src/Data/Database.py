@@ -1050,6 +1050,75 @@ class Database:
     # ****************************
 
     @classmethod
+    def remove_time_entry(cls, timeid):
+        """
+        Removes a time entry from the database.
+
+        Args:
+            timeid: The ID of the time entry to remove
+
+        Returns:
+            dict: A dictionary containing 'success' (bool) and additional information
+
+        Raises:
+            Exception: If there was a database error during the deletion
+        """
+        try:
+            # First check if the time entry exists and get some details for logging
+            cursor = cls.get_cursor()
+            cursor.execute("""
+                SELECT t.EMPID, e.FIRST_NAME, e.LAST_NAME, t.PROJECTID, p.PROJECT_NAME, 
+                       t.START_TIME, t.STOP_TIME 
+                FROM time t
+                JOIN employee_table e ON t.EMPID = e.EMPID
+                JOIN projects p ON t.PROJECTID = p.PROJECTID
+                WHERE t.TIMEID = ?
+            """, (timeid,))
+
+            result = cursor.fetchone()
+            if not result:
+                return {'success': False, 'error': f"Time entry ID {timeid} not found"}
+
+            # Store details for return information
+            empid, first_name, last_name, projectid, project_name, start_time, stop_time = result
+
+            # Begin transaction
+            cls.__connection.autocommit = False
+
+            # Delete the time entry
+            cursor.execute("DELETE FROM time WHERE TIMEID = ?", (timeid,))
+
+            # Check if any rows were affected
+            rows_deleted = cursor.rowcount
+            if rows_deleted == 0:
+                cls.__connection.rollback()
+                return {'success': False, 'error': f"No time entry found with ID {timeid}"}
+
+            # Commit the transaction
+            cls.commit()
+
+            # Return success with details of the deleted entry
+            return {
+                'success': True,
+                'deleted_entry': {
+                    'timeid': timeid,
+                    'empid': empid,
+                    'employee_name': f"{first_name} {last_name}",
+                    'projectid': projectid,
+                    'project_name': project_name,
+                    'start_time': start_time,
+                    'stop_time': stop_time
+                }
+            }
+
+        except Exception as e:
+            print(f"Error removing time entry: {e}")
+            # Ensure we rollback in case of error
+            if hasattr(cls, '__connection') and cls.__connection:
+                cls.__connection.rollback()
+            return {'success': False, 'error': str(e)}
+
+    @classmethod
     def update_time_entry_both_times(cls, timeid, new_start_time, new_stop_time):
         """
         Updates both START_TIME and STOP_TIME for a time entry.
