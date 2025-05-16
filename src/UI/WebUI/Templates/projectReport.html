@@ -174,8 +174,8 @@
                 <tr>
                     <td>{{ e[1] }} {{ e[2] }}</td>
                     <td>{{ e[3] }}</td>
-                    <td>{{ e[4] }}</td>
-                    <td>{{ e[5] if e[5] else '---' }}</td>
+                    <td class="local-timestamp" data-timestamp="{{ e[4].strftime('%Y-%m-%dT%H:%M:%SZ') if e[4] else '' }}"></td>
+                    <td class="local-timestamp" data-timestamp="{{ e[5].strftime('%Y-%m-%dT%H:%M:%SZ') if e[5] else '' }}">{{ '---' if not e[5] }}</td>
                     <td>{{ e[6]|format_minutes }}</td>
                     <td>{{ e[7] }}</td>
                 </tr>
@@ -191,6 +191,7 @@
         {% endif %}
     {% endif %}
 </div>
+    <p id="timezone-display" style="font-size: 0.9rem; color: #555; margin-top: 10px;"></p>
 
 {% endblock %}
 

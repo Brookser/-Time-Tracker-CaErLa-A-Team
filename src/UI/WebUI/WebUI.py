@@ -8,6 +8,7 @@ from src.Logic.Project import Project
 from datetime import datetime, timezone
 import uuid
 
+
 # helper function to normalize minutes column in entries
 def normalize_minutes_column(entries, minute_index):
     normalized = []
@@ -19,6 +20,8 @@ def normalize_minutes_column(entries, minute_index):
             entry[minute_index] = 0
         normalized.append(tuple(entry))
     return normalized
+
+
 # creates a decorator to check if user is logged in
 def login_required(f):
     @wraps(f)
@@ -33,6 +36,7 @@ def login_required(f):
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+
 # reformats minutes into Xhr Ymin
 @app.template_filter('format_minutes')
 def format_minutes(total_minutes):
@@ -43,6 +47,7 @@ def format_minutes(total_minutes):
     hours = minutes // 60
     remainder = minutes % 60
     return f"{hours}hr {remainder}min"
+
 
 @app.context_processor
 def inject_timer_state():
@@ -65,9 +70,6 @@ def inject_timer_state():
         print(f"❌ inject_timer_state error: {e}")
 
     return dict(timer_running=timer_running, log_timer_url=log_timer_url)
-
-
-
 
 
 @app.route("/")
@@ -233,7 +235,6 @@ def login():
     return render_template("login.html")
 
 
-
 @app.route("/my-time", methods=["GET"])
 @login_required
 def my_time():
@@ -380,6 +381,7 @@ def create_project():
 
     return render_template("createProject.html", eligible_employees=eligible_employees)
 
+
 @app.route("/project-report", methods=["GET", "POST"])
 @login_required
 def project_report():
@@ -443,6 +445,7 @@ def project_report():
                            selected_project=project_filter,
                            start=start,
                            end=end)
+
 
 @app.route("/my-projects")
 @login_required
@@ -540,6 +543,7 @@ def project_summary():
 
     return render_template("projectSummary.html", summary=summary, start=start, end=end)
 
+
 @app.route("/project-detail/<projectid>")
 @login_required
 def project_detail(projectid):
@@ -570,13 +574,14 @@ def project_detail(projectid):
     owner_name = f"{owner[1]} {owner[2]}" if owner else "Unknown"
 
     return render_template("projectDetail.html",
-                       projectid=projectid,
-                       owner_name=owner_name,
-                       team=team_info,
-                       total_minutes=total_minutes,
-                       entries=entries,
-                       start=start,
-                       end=end)
+                           projectid=projectid,
+                           owner_name=owner_name,
+                           team=team_info,
+                           total_minutes=total_minutes,
+                           entries=entries,
+                           start=start,
+                           end=end)
+
 
 @app.route("/log-time", methods=["GET", "POST"])
 @login_required
@@ -602,7 +607,7 @@ def log_time():
         session["active_timer_id"] = timeid
         flash("⏱️ Timer started!", "success")
         resp = redirect(url_for("log_time"))
-        resp.set_cookie("active_timer_id", timeid, max_age=8 * 3600)  # expires in 8 hours
+        resp.set_cookie("active_timer_id", timeid, max_age=12 * 3600)  # expires in 12 hours
         return resp
 
     # Fetch user projects for dropdown
@@ -611,6 +616,7 @@ def log_time():
 
     return render_template("logTime.html", projects=projects, active_timer=active_timer)
 
+
 @app.route("/stop-timer", methods=["POST"])
 @login_required
 def stop_timer():
@@ -618,6 +624,7 @@ def stop_timer():
     Database.stop_time_entry(empid)
     session.pop("active_timer_id", None)
     return redirect("/my-time")
+
 
 @app.route("/logout")
 def logout():

@@ -8,8 +8,12 @@
     {% if active_timer %}
         <h3>⏱️ Timer Running</h3>
         <p><strong>Project:</strong> {{ active_timer[1] }}</p>
-        <p><strong>Started:</strong> {{ active_timer[2] }}</p>
+        <p><strong>Started:</strong>
+            <span class="local-timestamp" data-timestamp="{{ active_timer[2].strftime('%Y-%m-%dT%H:%M:%SZ') }}"></span>
+        </p>
         <p><strong>Notes:</strong> {{ active_timer[3] or "—" }}</p>
+        <p id="timezone-display" style="font-size: 0.9rem; color: #555; margin-top: 10px;"></p>
+
 
         <form action="{{ url_for('stop_timer') }}" method="post" class="log-time-form">
             <button type="submit" class="button danger">🔴 Stop Timer</button>

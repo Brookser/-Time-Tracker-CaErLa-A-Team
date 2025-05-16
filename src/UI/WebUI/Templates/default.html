@@ -81,7 +81,39 @@
         <p><a href="/">Return to main menu</a></p>
     </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById("timezone-display").innerText = "Times shown in " + tz.replace("_", " ");
+        });
+    </script>
+    <script>
+        document.querySelectorAll('.local-timestamp').forEach(el => {
+            const raw = el.dataset.timestamp;
+            if (raw) {
+                const date = new Date(raw);
+                if (!isNaN(date.getTime())) {
+                    const formatted = date.toLocaleString(undefined, {
+                        month: 'numeric',
+                        day: 'numeric',
+                        year: '2-digit',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                    });
+                    el.textContent = formatted;
+                } else {
+                    el.textContent = "Invalid date";
+                }
+            } else {
+                el.textContent = "---";
+            }
+        });
+    </script>
+
+
 
 </body>
 </html>

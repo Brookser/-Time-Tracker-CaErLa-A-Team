@@ -427,7 +427,7 @@ class Database:
             new_projectid = ""  # The trigger will fill this in
 
             # 4. Create new project with current project as PRIOR_PROJECTID
-            date_created = datetime.now(local_tz)
+            date_created = datetime.now(timezone.utc)
             cursor.execute('''
                 INSERT INTO projects 
                 (PROJECTID, PROJECT_NAME, CREATED_BY, DATE_CREATED, PRIOR_PROJECTID, PROJECT_ACTIVE)
@@ -705,7 +705,7 @@ class Database:
                 print(f"Login ID {loginid} not found")
                 return False
 
-            current_time = datetime.now(local_tz)
+            current_time = datetime.now(timezone.utc)
 
             cursor.execute('''
                 UPDATE login_table
@@ -981,10 +981,11 @@ class Database:
     def get_active_timer_for_user(cls, empid):
         cursor = cls.get_cursor()
         cursor.execute('''
-            SELECT TIMEID, PROJECTID, START_TIME, NOTES
-            FROM time
-            WHERE EMPID = ? AND STOP_TIME IS NULL AND MANUAL_ENTRY = 0
-            ORDER BY START_TIME DESC
+            SELECT t.TIMEID, p.PROJECT_NAME, t.START_TIME, t.NOTES
+            FROM time t
+            JOIN projects p ON t.PROJECTID = p.PROJECTID
+            WHERE t.EMPID = ? AND t.STOP_TIME IS NULL AND t.MANUAL_ENTRY = 0
+            ORDER BY t.START_TIME DESC
             LIMIT 1
         ''', (empid,))
         return cursor.fetchone()
@@ -995,13 +996,13 @@ class Database:
         cursor.execute('''
             INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, NOTES, MANUAL_ENTRY)
             VALUES (?, ?, ?, ?, ?, 0)
-        ''', (timeid, empid, projectid, datetime.now(local_tz), notes))
+        ''', (timeid, empid, projectid, datetime.now(timezone.utc), notes))
         cls.commit()
 
     @classmethod
     def stop_time_entry(cls, empid):
         cursor = cls.get_cursor()
-        stop_time = datetime.now(local_tz)
+        stop_time = datetime.now(timezone.utc)
         cursor.execute('''
             UPDATE time
             SET STOP_TIME = ?
