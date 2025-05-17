@@ -41,8 +41,8 @@
             {% for e in entries %}
             <tr>
                 <td>{{ e[3] }}</td>
-                <td>{{ e[4] }}</td>
-                <td>{{ e[5] if e[5] else '---' }}</td>
+                <td class="local-timestamp" data-timestamp="{{ e[4].strftime('%Y-%m-%dT%H:%M:%SZ') if e[4] else '' }}"></td>
+                <td class="local-timestamp" data-timestamp="{{ e[5].strftime('%Y-%m-%dT%H:%M:%SZ') if e[5] else '' }}">{{ '---' if not e[5] }}</td>
                 <td>{{ e[6] }}</td>
                 <td>{{ e[7]|format_minutes }}</td>
             </tr>
@@ -52,4 +52,5 @@
         <p>No entries found for this time range.</p>
     {% endif %}
 </div>
+    <p id="timezone-display" style="font-size: 0.9rem; color: #555; margin-top: 10px;"></p>
 {% endblock %}
