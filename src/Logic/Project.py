@@ -7,7 +7,7 @@ class Project:
         self.__name = name
         self.__created_by = created_by
         self.__date_created = date_created or datetime.now()
-        self.__prior_projectid = prior_projectid
+        self.__prior_projectid = None
         self.__active = active
 
     # Setters

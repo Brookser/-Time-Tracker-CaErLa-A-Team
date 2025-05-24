@@ -8,21 +8,26 @@
     <h2>Time Logged by Team</h2>
 
     {% if summary %}
-        {% for emp_name, projects in summary.items() %}
-            <div style="background: #f9f9f9; padding: 15px; margin-bottom: 16px; border-radius: 6px;">
-                <h3 style="margin-top: 0;">👤 {{ emp_name }}</h3>
-                <ul style="margin-left: 0; padding-left: 1rem;">
-                    {% for project, minutes in projects.items() %}
-                        <li><strong>{{ project }}</strong>: {{ minutes|format_minutes }} </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endfor %}
+        <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+            {% for emp_name, projects in summary.items() %}
+                <div style="flex: 1 1 300px; background: #f9f9f9; border-radius: 8px; padding: 12px 16px; box-shadow: 1px 2px 6px rgba(0,0,0,0.13);">
+                    <h4 style="margin-top: 0; margin-bottom: 6px; color: #0f3b96;">👤 {{ emp_name }}</h4>
+                    <ul style="list-style: none; padding-left: 0; margin: 0;">
+                        {% for project, minutes in projects.items() %}
+                            <li style="font-size: 0.9rem; margin-bottom: 4px;">
+                                <strong>{{ project }}</strong>: {{ minutes|format_minutes }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
     {% else %}
         <p>No entries found for your team today.</p>
     {% endif %}
 </div>
-    <p id="timezone-display" style="font-size: 0.9rem; color: #555; margin-top: 10px;"></p>
+
+<!--    <p id="timezone-display" style="font-size: 0.9rem; color: #555; margin-top: 10px;"></p>-->
 
 <div class="report-card">
     <h3>Total Time by Project</h3>

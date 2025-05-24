@@ -11,16 +11,20 @@
     {% if team %}
         <div class="card-grid">
         {% for project in team %}
-            <div class="project-card {% if project.owner_id == session['empid'] %}owned{% endif %}">
-                <strong>{{ project.name }}</strong>
-                {% if project.owner_id == session['empid'] %}
-                    <span class="tag">You Own This</span>
-                {% endif %}
-                <br>
-                {% if project.owner_id != session['empid'] %}
+            {% if project.owner_id == session['empid'] %}
+                <a href="{{ url_for('project_detail', projectid=project.pid) }}" class="project-card-link">
+                    <div class="project-card owned">
+                        <strong>{{ project.name }}</strong>
+                        <span class="tag">You Own This</span>
+                    </div>
+                </a>
+            {% else %}
+                <div class="project-card">
+                    <strong>{{ project.name }}</strong>
+                    <br>
                     <small>Owner: <span class="owner-name">{{ project.owner_name }}</span></small>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         {% endfor %}
         </div>
     {% else %}
@@ -34,10 +38,12 @@
     {% if personal %}
         <div class="card-grid">
         {% for pid, name in personal %}
-            <div class="project-card">
-                <strong>{{ name }}</strong><br>
-                <small>ID: {{ pid }}</small>
-            </div>
+            <a href="{{ url_for('project_detail', projectid=pid) }}" class="project-card-link">
+                <div class="project-card">
+                    <strong>{{ name }}</strong>
+                </div>
+            </a>
+
         {% endfor %}
         </div>
     {% else %}

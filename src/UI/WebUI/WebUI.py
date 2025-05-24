@@ -1,3 +1,5 @@
+import random
+import pytz
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
 from src.Logic.TimeEntry import TimeEntry
@@ -35,6 +37,14 @@ def login_required(f):
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
+@app.route("/set-timezone", methods=["POST"])
+def set_timezone():
+    data = request.get_json()
+    if data and "timezone" in data:
+        session["timezone"] = data["timezone"]
+        return '', 204
+    return 'Missing timezone', 400
 
 
 # reformats minutes into Xhr Ymin
@@ -260,6 +270,36 @@ def my_time():
     return render_template("myTime.html", entries=entries)
 
 
+# @app.route("/todays-summary")
+# @login_required
+# def todays_summary():
+#     empid = session.get("empid")
+#     if not empid:
+#         return redirect("/login")
+#
+#     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+#     today_end = datetime.now().replace(hour=23, minute=59, second=59)
+#
+#     entries = TimeEntry.get_time_entries_filtered(
+#         empid=empid,
+#         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
+#         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+#     )
+#     entries = normalize_minutes_column(entries, 7)
+#
+#     # Summarize total time by project
+#     for entry in entries:
+#         print("🧾 Entry:", entry)
+#
+#     project_summary = {}
+#     for entry in entries:
+#         project = entry[3]  # project_name
+#         minutes = entry[7]  # total_minutes
+#         minutes = int(minutes)  # throws error if minutes not converted to int
+#         project_summary[project] = project_summary.get(project, 0) + minutes
+#
+#     return render_template("todaysSummary.html", entries=entries, project_summary=project_summary)
+
 @app.route("/todays-summary")
 @login_required
 def todays_summary():
@@ -267,28 +307,76 @@ def todays_summary():
     if not empid:
         return redirect("/login")
 
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = datetime.now().replace(hour=23, minute=59, second=59)
+    # Use user's local timezone (e.g., Pacific Time)
+    local_tz = pytz.timezone("America/Los_Angeles")  # You can make this dynamic later
 
+    # Get start and end of day in local time
+    now_local = datetime.now(local_tz)
+    today_start_local = local_tz.localize(datetime(now_local.year, now_local.month, now_local.day, 0, 0, 0))
+    today_end_local = local_tz.localize(datetime(now_local.year, now_local.month, now_local.day, 23, 59, 59))
+
+    # Convert to UTC for DB filtering
+    today_start_utc = today_start_local.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+    today_end_utc = today_end_local.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    # Query using UTC times
     entries = TimeEntry.get_time_entries_filtered(
         empid=empid,
-        start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
-        end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+        start_date=today_start_utc,
+        end_date=today_end_utc
     )
     entries = normalize_minutes_column(entries, 7)
-
-    # Summarize total time by project
-    for entry in entries:
-        print("🧾 Entry:", entry)
 
     project_summary = {}
     for entry in entries:
         project = entry[3]  # project_name
-        minutes = entry[7]  # total_minutes
-        minutes = int(minutes)  # throws error if minutes not converted to int
+        minutes = int(entry[7])
         project_summary[project] = project_summary.get(project, 0) + minutes
 
     return render_template("todaysSummary.html", entries=entries, project_summary=project_summary)
+
+# @app.route("/report-todays-summary")
+# @login_required
+# def todays_summary_manager():
+#     if session.get("emp_role") != "manager":
+#         return redirect("/")
+#
+#     empid = session.get("empid")
+#     dptid = Database.get_department_of_employee(empid)
+#     managed = Database.get_employees_managed_by(empid)
+#     in_dept = Database.get_employees_in_department(dptid)
+#     all_ids = list(set(managed + in_dept))
+#
+#     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+#     today_end = datetime.now().replace(hour=23, minute=59, second=59)
+#     today_start_date = today_start.strftime("%B %d, %Y")
+#
+#     entries = TimeEntry.get_entries_for_empids(
+#         empids=all_ids,
+#         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
+#         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+#     )
+#     entries = normalize_minutes_column(entries, 7)
+#
+#     summary = {}
+#     for entry in entries:
+#         emp_name = f"{entry[1]} {entry[2]}"  # first + last
+#         project = entry[3]  # project name
+#         minutes = int(entry[7])  # total minutes
+#
+#         if emp_name not in summary:
+#             summary[emp_name] = {}
+#
+#         summary[emp_name][project] = summary[emp_name].get(project, 0) + minutes
+#
+#     project_totals = {}
+#     for entry in entries:
+#         project = entry[3]  # project name
+#         minutes = int(entry[7])
+#         project_totals[project] = project_totals.get(project, 0) + minutes
+#
+#     return render_template("managerSummary.html", summary=summary, project_totals=project_totals,
+#                            today=today_start_date)
 
 
 @app.route("/report-todays-summary")
@@ -303,36 +391,48 @@ def todays_summary_manager():
     in_dept = Database.get_employees_in_department(dptid)
     all_ids = list(set(managed + in_dept))
 
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = datetime.now().replace(hour=23, minute=59, second=59)
-    today_start_date = today_start.strftime("%B %d, %Y")
+    # Get user's local timezone from browser (saved in session or default to Pacific)
+    local_tz_str = session.get("timezone", "America/Los_Angeles")
+    local_tz = pytz.timezone(local_tz_str)
+
+    # Calculate local "today" and convert to UTC for querying
+    local_now = datetime.now(local_tz)
+    local_today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    local_today_end = local_now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    utc_today_start = local_today_start.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+    utc_today_end = local_today_end.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    today_start_display = local_today_start.strftime("%B %d, %Y")
 
     entries = TimeEntry.get_entries_for_empids(
         empids=all_ids,
-        start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
-        end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+        start_date=utc_today_start,
+        end_date=utc_today_end
     )
     entries = normalize_minutes_column(entries, 7)
 
     summary = {}
     for entry in entries:
         emp_name = f"{entry[1]} {entry[2]}"  # first + last
-        project = entry[3]  # project name
-        minutes = int(entry[7])  # total minutes
-
+        project = entry[3]
+        minutes = int(entry[7])
+        # summary.setdefault(emp_name, {})[project] = summary[emp_name].get(project, 0) + minutes
         if emp_name not in summary:
             summary[emp_name] = {}
 
         summary[emp_name][project] = summary[emp_name].get(project, 0) + minutes
 
+
     project_totals = {}
     for entry in entries:
-        project = entry[3]  # project name
+        project = entry[3]
         minutes = int(entry[7])
         project_totals[project] = project_totals.get(project, 0) + minutes
 
-    return render_template("managerSummary.html", summary=summary, project_totals=project_totals,
-                           today=today_start_date)
+    return render_template("managerSummary.html",
+                           summary=summary,
+                           project_totals=project_totals,
+                           today=today_start_display)
 
 
 @app.route("/create-project", methods=["GET", "POST"])
@@ -354,7 +454,7 @@ def create_project():
         if not name:
             return "❌ Project name is required."
 
-        projectid = f"P_{uuid4().hex[:8]}"
+        projectid = f"P{random.randint(10001, 99999)}"
         new_project = Project(
             projectid=projectid,
             name=name,
@@ -491,13 +591,14 @@ def my_projects():
 @login_required
 def manage_projects():
     empid = session.get("empid")
-    all_projects = Database.get_all_projects()
+    # all_projects = Database.get_all_projects()
+    active_projects = Database.get_active_projects()
     project_membership = Database.get_project_ids_for_employee(empid)
 
     personal = []
     team = []
 
-    for pid, name in all_projects:
+    for pid, name in active_projects:
         creator = Database.get_project_created_by(pid)
         members = Database.get_employees_assigned_to_project(pid)
 
@@ -572,15 +673,55 @@ def project_detail(projectid):
     owner_id = Database.get_project_created_by(projectid)
     owner = Database.get_employee_by_empid(owner_id)
     owner_name = f"{owner[1]} {owner[2]}" if owner else "Unknown"
+    is_owner = (session.get("empid") == owner_id)
 
     return render_template("projectDetail.html",
+                           project_name=project_name,
                            projectid=projectid,
                            owner_name=owner_name,
                            team=team_info,
                            total_minutes=total_minutes,
                            entries=entries,
                            start=start,
-                           end=end)
+                           end=end,
+                           is_owner=is_owner)
+
+@app.route("/edit-project/<projectid>", methods=["GET"])
+@login_required
+def edit_project_view(projectid):
+    empid = session.get("empid")
+    owner_id = Database.get_project_created_by(projectid)
+
+    if empid != owner_id:
+        flash("You do not have permission to edit this project.", "error")
+        return redirect(url_for("project_detail", projectid=projectid))
+
+    project_name = next((name for pid, name in Database.get_all_projects() if pid == projectid), "Unknown Project")
+    return render_template("editProject.html", projectid=projectid, current_name=project_name)
+
+@app.route("/edit-project-name/<projectid>", methods=["POST"])
+@login_required
+def edit_project_name(projectid):
+    new_name = request.form.get("new_name")
+    empid = session.get("empid")
+
+    # Double-check ownership before allowing rename
+    if empid != Database.get_project_created_by(projectid):
+        flash("You do not have permission to edit this project.", "error")
+        return redirect(url_for("project_detail", projectid=projectid))
+
+    result = Database.change_project_name(
+        current_projectid=projectid,
+        new_project_name=new_name,
+        created_by=empid
+    )
+
+    if result.get("success"):
+        flash("Project name updated!", "success")
+        return redirect(url_for("project_detail", projectid=result["new_projectid"]))
+    else:
+        flash("Failed to update project name.", "error")
+        return redirect(url_for("edit_project_view", projectid=projectid))
 
 
 @app.route("/log-time", methods=["GET", "POST"])
