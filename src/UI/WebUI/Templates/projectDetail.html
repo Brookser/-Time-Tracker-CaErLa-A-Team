@@ -3,7 +3,14 @@
 {% block header %}{{ project_name }}{% endblock %}
 
 {% block content %}
-
+<div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 class="tab-heading">{{ project_name }}</h2>
+    {% if is_owner %}
+        <a href="{{ url_for('edit_project_view', projectid=projectid) }}">
+            <button>Edit Project</button>
+        </a>
+    {% endif %}
+</div>
 <div class="report-card">
     <form method="get">
         <div class="date-range-fields">
@@ -38,13 +45,6 @@
             <p>No team members found.</p>
         {% endif %}
     </div>
-    {% if is_owner %}
-        <div style="margin-bottom: 1rem;">
-            <a href="{{ url_for('edit_project_view', projectid=projectid) }}">
-                <button>Edit Project</button>
-            </a>
-        </div>
-    {% endif %}
 
 
     {% if entries %}
