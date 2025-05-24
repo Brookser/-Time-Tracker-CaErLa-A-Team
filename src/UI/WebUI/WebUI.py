@@ -671,15 +671,31 @@ def project_detail(projectid):
     owner_id = Database.get_project_created_by(projectid)
     owner = Database.get_employee_by_empid(owner_id)
     owner_name = f"{owner[1]} {owner[2]}" if owner else "Unknown"
+    is_owner = (session.get("empid") == owner_id)
 
     return render_template("projectDetail.html",
+                           project_name=project_name,
                            projectid=projectid,
                            owner_name=owner_name,
                            team=team_info,
                            total_minutes=total_minutes,
                            entries=entries,
                            start=start,
-                           end=end)
+                           end=end,
+                           is_owner=is_owner)
+
+@app.route("/edit-project/<projectid>", methods=["GET"])
+@login_required
+def edit_project_view(projectid):
+    empid = session.get("empid")
+    owner_id = Database.get_project_created_by(projectid)
+
+    if empid != owner_id:
+        flash("You do not have permission to edit this project.", "error")
+        return redirect(url_for("project_detail", projectid=projectid))
+
+    project_name = next((name for pid, name in Database.get_all_projects() if pid == projectid), "Unknown Project")
+    return render_template("editProject.html", projectid=projectid, current_name=project_name)
 
 
 @app.route("/log-time", methods=["GET", "POST"])

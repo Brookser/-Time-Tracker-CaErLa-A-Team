@@ -172,6 +172,19 @@ label.member-select {
     border-left-color: #e27ca8; /* soft rose pink */
 }
 
+.project-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.project-card-link:hover {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+
 /* Project pages forms*/
 
 .date-range-fields {
