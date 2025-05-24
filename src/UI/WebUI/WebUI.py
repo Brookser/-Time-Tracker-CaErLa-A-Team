@@ -1,4 +1,4 @@
-from random import random
+import random
 import pytz
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
