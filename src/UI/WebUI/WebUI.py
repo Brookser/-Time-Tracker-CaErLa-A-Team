@@ -1,3 +1,4 @@
+import pytz
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
 from src.Logic.TimeEntry import TimeEntry
@@ -35,6 +36,14 @@ def login_required(f):
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
+@app.route("/set-timezone", methods=["POST"])
+def set_timezone():
+    data = request.get_json()
+    if data and "timezone" in data:
+        session["timezone"] = data["timezone"]
+        return '', 204
+    return 'Missing timezone', 400
 
 
 # reformats minutes into Xhr Ymin
@@ -260,6 +269,36 @@ def my_time():
     return render_template("myTime.html", entries=entries)
 
 
+# @app.route("/todays-summary")
+# @login_required
+# def todays_summary():
+#     empid = session.get("empid")
+#     if not empid:
+#         return redirect("/login")
+#
+#     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+#     today_end = datetime.now().replace(hour=23, minute=59, second=59)
+#
+#     entries = TimeEntry.get_time_entries_filtered(
+#         empid=empid,
+#         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
+#         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+#     )
+#     entries = normalize_minutes_column(entries, 7)
+#
+#     # Summarize total time by project
+#     for entry in entries:
+#         print("🧾 Entry:", entry)
+#
+#     project_summary = {}
+#     for entry in entries:
+#         project = entry[3]  # project_name
+#         minutes = entry[7]  # total_minutes
+#         minutes = int(minutes)  # throws error if minutes not converted to int
+#         project_summary[project] = project_summary.get(project, 0) + minutes
+#
+#     return render_template("todaysSummary.html", entries=entries, project_summary=project_summary)
+
 @app.route("/todays-summary")
 @login_required
 def todays_summary():
@@ -267,28 +306,76 @@ def todays_summary():
     if not empid:
         return redirect("/login")
 
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = datetime.now().replace(hour=23, minute=59, second=59)
+    # Use user's local timezone (e.g., Pacific Time)
+    local_tz = pytz.timezone("America/Los_Angeles")  # You can make this dynamic later
 
+    # Get start and end of day in local time
+    now_local = datetime.now(local_tz)
+    today_start_local = local_tz.localize(datetime(now_local.year, now_local.month, now_local.day, 0, 0, 0))
+    today_end_local = local_tz.localize(datetime(now_local.year, now_local.month, now_local.day, 23, 59, 59))
+
+    # Convert to UTC for DB filtering
+    today_start_utc = today_start_local.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+    today_end_utc = today_end_local.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    # Query using UTC times
     entries = TimeEntry.get_time_entries_filtered(
         empid=empid,
-        start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
-        end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+        start_date=today_start_utc,
+        end_date=today_end_utc
     )
     entries = normalize_minutes_column(entries, 7)
-
-    # Summarize total time by project
-    for entry in entries:
-        print("🧾 Entry:", entry)
 
     project_summary = {}
     for entry in entries:
         project = entry[3]  # project_name
-        minutes = entry[7]  # total_minutes
-        minutes = int(minutes)  # throws error if minutes not converted to int
+        minutes = int(entry[7])
         project_summary[project] = project_summary.get(project, 0) + minutes
 
     return render_template("todaysSummary.html", entries=entries, project_summary=project_summary)
+
+# @app.route("/report-todays-summary")
+# @login_required
+# def todays_summary_manager():
+#     if session.get("emp_role") != "manager":
+#         return redirect("/")
+#
+#     empid = session.get("empid")
+#     dptid = Database.get_department_of_employee(empid)
+#     managed = Database.get_employees_managed_by(empid)
+#     in_dept = Database.get_employees_in_department(dptid)
+#     all_ids = list(set(managed + in_dept))
+#
+#     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+#     today_end = datetime.now().replace(hour=23, minute=59, second=59)
+#     today_start_date = today_start.strftime("%B %d, %Y")
+#
+#     entries = TimeEntry.get_entries_for_empids(
+#         empids=all_ids,
+#         start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
+#         end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+#     )
+#     entries = normalize_minutes_column(entries, 7)
+#
+#     summary = {}
+#     for entry in entries:
+#         emp_name = f"{entry[1]} {entry[2]}"  # first + last
+#         project = entry[3]  # project name
+#         minutes = int(entry[7])  # total minutes
+#
+#         if emp_name not in summary:
+#             summary[emp_name] = {}
+#
+#         summary[emp_name][project] = summary[emp_name].get(project, 0) + minutes
+#
+#     project_totals = {}
+#     for entry in entries:
+#         project = entry[3]  # project name
+#         minutes = int(entry[7])
+#         project_totals[project] = project_totals.get(project, 0) + minutes
+#
+#     return render_template("managerSummary.html", summary=summary, project_totals=project_totals,
+#                            today=today_start_date)
 
 
 @app.route("/report-todays-summary")
@@ -303,36 +390,48 @@ def todays_summary_manager():
     in_dept = Database.get_employees_in_department(dptid)
     all_ids = list(set(managed + in_dept))
 
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = datetime.now().replace(hour=23, minute=59, second=59)
-    today_start_date = today_start.strftime("%B %d, %Y")
+    # Get user's local timezone from browser (saved in session or default to Pacific)
+    local_tz_str = session.get("timezone", "America/Los_Angeles")
+    local_tz = pytz.timezone(local_tz_str)
+
+    # Calculate local "today" and convert to UTC for querying
+    local_now = datetime.now(local_tz)
+    local_today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    local_today_end = local_now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    utc_today_start = local_today_start.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+    utc_today_end = local_today_end.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+    today_start_display = local_today_start.strftime("%B %d, %Y")
 
     entries = TimeEntry.get_entries_for_empids(
         empids=all_ids,
-        start_date=today_start.strftime("%Y-%m-%d %H:%M:%S"),
-        end_date=today_end.strftime("%Y-%m-%d %H:%M:%S")
+        start_date=utc_today_start,
+        end_date=utc_today_end
     )
     entries = normalize_minutes_column(entries, 7)
 
     summary = {}
     for entry in entries:
         emp_name = f"{entry[1]} {entry[2]}"  # first + last
-        project = entry[3]  # project name
-        minutes = int(entry[7])  # total minutes
-
+        project = entry[3]
+        minutes = int(entry[7])
+        # summary.setdefault(emp_name, {})[project] = summary[emp_name].get(project, 0) + minutes
         if emp_name not in summary:
             summary[emp_name] = {}
 
         summary[emp_name][project] = summary[emp_name].get(project, 0) + minutes
 
+
     project_totals = {}
     for entry in entries:
-        project = entry[3]  # project name
+        project = entry[3]
         minutes = int(entry[7])
         project_totals[project] = project_totals.get(project, 0) + minutes
 
-    return render_template("managerSummary.html", summary=summary, project_totals=project_totals,
-                           today=today_start_date)
+    return render_template("managerSummary.html",
+                           summary=summary,
+                           project_totals=project_totals,
+                           today=today_start_display)
 
 
 @app.route("/create-project", methods=["GET", "POST"])
