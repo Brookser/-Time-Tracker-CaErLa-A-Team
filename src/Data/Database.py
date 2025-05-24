@@ -1343,3 +1343,531 @@ class Database:
     # ****************************
     # end of 5.4.2025 update - EAB
     # ****************************
+
+# ======================
+# 🔹 Department History Queries
+# ======================
+
+    @classmethod
+    def update_employee_department(cls, empid, new_dptid, assignment_date=None):
+        """
+        Update an employee's department assignment and record the change in history.
+
+        Args:
+            empid (str): Employee ID to update
+            new_dptid (str): New department ID to assign
+            assignment_date (datetime.date, optional): Date of assignment.
+                                                     Defaults to current date if not provided.
+
+        Returns:
+            bool: True if update was successful, False otherwise
+
+        Raises:
+            Exception: If employee doesn't exist, department doesn't exist, or database error occurs
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            # Verify employee exists
+            cursor.execute("SELECT EMPID, DPTID FROM employee_table WHERE EMPID = ?", (empid,))
+            employee_result = cursor.fetchone()
+            if not employee_result:
+                raise Exception(f"Employee {empid} not found")
+
+            current_dptid = employee_result[1]
+
+            # Check if already assigned to this department
+            if current_dptid == new_dptid:
+                return True  # No change needed
+
+            # Verify new department exists
+            cursor.execute("SELECT DPTID FROM department WHERE DPTID = ?", (new_dptid,))
+            dept_result = cursor.fetchone()
+            if not dept_result:
+                raise Exception(f"Department {new_dptid} not found")
+
+            # Use current date if assignment_date not provided
+            if assignment_date is None:
+                assignment_date = datetime.now(local_tz).date()
+
+            # Update employee's department in employee_table
+            cursor.execute(
+                "UPDATE employee_table SET DPTID = ? WHERE EMPID = ?",
+                (new_dptid, empid)
+            )
+
+            # Add record to department history table
+            cursor.execute(
+                "INSERT INTO employee_department_history (EMPID, DPTID, ASSIGNMENT_DATE) VALUES (?, ?, ?)",
+                (empid, new_dptid, assignment_date)
+            )
+
+            cls.commit()
+            return True
+
+        except Exception as e:
+            cls.__connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+
+    @classmethod
+    def get_employee_department_history(cls, empid):
+        """
+        Get the department assignment history for a specific employee.
+
+        Args:
+            empid (str): Employee ID to get history for
+
+        Returns:
+            list: List of tuples containing (DPTID, DPT_NAME, ASSIGNMENT_DATE) ordered by date
+        """
+        cursor = cls.get_cursor()
+        query = '''
+                SELECT edh.DPTID, d.DPT_NAME, edh.ASSIGNMENT_DATE
+                FROM employee_department_history edh
+                INNER JOIN department d ON edh.DPTID = d.DPTID
+                WHERE edh.EMPID = ?
+                ORDER BY edh.ASSIGNMENT_DATE DESC
+            '''
+        cursor.execute(query, (empid,))
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    @classmethod
+    def get_current_department_employees(cls, dptid):
+        """
+        Get all employees currently assigned to a specific department.
+
+        Args:
+            dptid (str): Department ID
+
+        Returns:
+            list: List of tuples containing employee information for current department members
+        """
+        cursor = cls.get_cursor()
+        query = '''
+                SELECT EMPID, FIRST_NAME, LAST_NAME, EMAIL_ADDRESS, EMP_ACTIVE, EMP_ROLE
+                FROM employee_table
+                WHERE DPTID = ?
+                ORDER BY LAST_NAME, FIRST_NAME
+            '''
+        cursor.execute(query, (dptid,))
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    @classmethod
+    def get_department_changes_since_date(cls, since_date):
+        """
+        Get all department changes that occurred since a specific date.
+
+        Args:
+            since_date (datetime.date): Date to check changes since
+
+        Returns:
+            list: List of tuples containing (EMPID, FIRST_NAME, LAST_NAME, DPTID, DPT_NAME, ASSIGNMENT_DATE)
+        """
+        cursor = cls.get_cursor()
+        query = '''
+                SELECT edh.EMPID, e.FIRST_NAME, e.LAST_NAME, edh.DPTID, d.DPT_NAME, edh.ASSIGNMENT_DATE
+                FROM employee_department_history edh
+                INNER JOIN employee_table e ON edh.EMPID = e.EMPID
+                INNER JOIN department d ON edh.DPTID = d.DPTID
+                WHERE edh.ASSIGNMENT_DATE >= ?
+                ORDER BY edh.ASSIGNMENT_DATE DESC, e.LAST_NAME
+            '''
+        cursor.execute(query, (since_date,))
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+
+# ======================
+# 🔹 Role History Queries
+# ======================
+
+@classmethod
+def update_employee_role(cls, empid, new_role, assignment_date=None):
+    """
+    Update an employee's role and record the change in history.
+
+    Args:
+        empid (str): Employee ID to update
+        new_role (str): New role to assign (individual, manager, project_manager, user)
+        assignment_date (datetime.date, optional): Date of role assignment.
+                                                 Defaults to current date if not provided.
+
+    Returns:
+        bool: True if update was successful, False otherwise
+
+    Raises:
+        Exception: If employee doesn't exist, invalid role, or database error occurs
+    """
+    cursor = cls.get_cursor()
+
+    try:
+        # Define valid roles
+        valid_roles = ['individual', 'manager', 'project_manager', 'user']
+
+        # Validate role
+        if new_role not in valid_roles:
+            raise Exception(f"Invalid role '{new_role}'. Valid roles: {', '.join(valid_roles)}")
+
+        # Verify employee exists and get current role
+        cursor.execute("SELECT EMPID, EMP_ROLE FROM employee_table WHERE EMPID = ?", (empid,))
+        employee_result = cursor.fetchone()
+        if not employee_result:
+            raise Exception(f"Employee {empid} not found")
+
+        current_role = employee_result[1]
+
+        # Check if already assigned to this role
+        if current_role == new_role:
+            return True  # No change needed
+
+        # Use current date if assignment_date not provided
+        if assignment_date is None:
+            assignment_date = datetime.now(local_tz).date()
+
+        # Update employee's role in employee_table
+        cursor.execute(
+            "UPDATE employee_table SET EMP_ROLE = ? WHERE EMPID = ?",
+            (new_role, empid)
+        )
+
+        # Add record to role history table
+        cursor.execute(
+            "INSERT INTO employee_role_history (EMPID, EMP_ROLE, ROLE_ASSIGNMENT_DATE) VALUES (?, ?, ?)",
+            (empid, new_role, assignment_date)
+        )
+
+        cls.commit()
+        return True
+
+    except Exception as e:
+        cls.__connection.rollback()
+        raise e
+    finally:
+        cursor.close()
+
+
+@classmethod
+def get_employee_role_history(cls, empid):
+    """
+    Get the role assignment history for a specific employee.
+
+    Args:
+        empid (str): Employee ID to get history for
+
+    Returns:
+        list: List of tuples containing (EMP_ROLE, ROLE_ASSIGNMENT_DATE) ordered by date desc
+    """
+    cursor = cls.get_cursor()
+    query = '''
+            SELECT EMP_ROLE, ROLE_ASSIGNMENT_DATE
+            FROM employee_role_history
+            WHERE EMPID = ?
+            ORDER BY ROLE_ASSIGNMENT_DATE DESC
+        '''
+    cursor.execute(query, (empid,))
+    result = cursor.fetchall()
+    cursor.close()
+    return result
+
+
+@classmethod
+def get_employees_by_role(cls, role, include_inactive=False):
+    """
+    Get all employees currently assigned to a specific role.
+
+    Args:
+        role (str): Role to filter by (individual, manager, project_manager, user)
+        include_inactive (bool): Whether to include inactive employees
+
+    Returns:
+        list: List of tuples containing employee information for current role holders
+    """
+    cursor = cls.get_cursor()
+
+    active_filter = "" if include_inactive else "AND EMP_ACTIVE = 1"
+
+    query = f'''
+            SELECT EMPID, FIRST_NAME, LAST_NAME, DPTID, EMAIL_ADDRESS, EMP_ACTIVE
+            FROM employee_table
+            WHERE EMP_ROLE = ? {active_filter}
+            ORDER BY LAST_NAME, FIRST_NAME
+        '''
+    cursor.execute(query, (role,))
+    result = cursor.fetchall()
+    cursor.close()
+    return result
+
+
+@classmethod
+def get_role_changes_since_date(cls, since_date):
+    """
+    Get all role changes that occurred since a specific date.
+
+    Args:
+        since_date (datetime.date): Date to check changes since
+
+    Returns:
+        list: List of tuples containing (EMPID, FIRST_NAME, LAST_NAME, EMP_ROLE, ROLE_ASSIGNMENT_DATE)
+    """
+    cursor = cls.get_cursor()
+    query = '''
+            SELECT erh.EMPID, e.FIRST_NAME, e.LAST_NAME, erh.EMP_ROLE, erh.ROLE_ASSIGNMENT_DATE
+            FROM employee_role_history erh
+            INNER JOIN employee_table e ON erh.EMPID = e.EMPID
+            WHERE erh.ROLE_ASSIGNMENT_DATE >= ?
+            ORDER BY erh.ROLE_ASSIGNMENT_DATE DESC, e.LAST_NAME
+        '''
+    cursor.execute(query, (since_date,))
+    result = cursor.fetchall()
+    cursor.close()
+    return result
+
+
+@classmethod
+def get_employee_career_progression(cls, empid):
+    """
+    Get detailed career progression for an employee including both role and department history.
+
+    Args:
+        empid (str): Employee ID to get career progression for
+
+    Returns:
+        dict: Dictionary containing role_history and department_history lists
+    """
+    cursor = cls.get_cursor()
+
+    try:
+        # Get role history
+        cursor.execute('''
+                SELECT EMP_ROLE, ROLE_ASSIGNMENT_DATE, 'role_change' as change_type
+                FROM employee_role_history
+                WHERE EMPID = ?
+                ORDER BY ROLE_ASSIGNMENT_DATE DESC
+            ''', (empid,))
+        role_history = cursor.fetchall()
+
+        # Get department history
+        cursor.execute('''
+                SELECT edh.DPTID, d.DPT_NAME, edh.ASSIGNMENT_DATE, 'dept_change' as change_type
+                FROM employee_department_history edh
+                INNER JOIN department d ON edh.DPTID = d.DPTID
+                WHERE edh.EMPID = ?
+                ORDER BY edh.ASSIGNMENT_DATE DESC
+            ''', (empid,))
+        dept_history = cursor.fetchall()
+
+        return {
+            'role_history': role_history,
+            'department_history': dept_history
+        }
+
+    finally:
+        cursor.close()
+
+
+@classmethod
+def get_current_managers(cls):
+    """
+    Get all employees currently in manager or project_manager roles.
+
+    Returns:
+        list: List of tuples containing manager information grouped by role
+    """
+    cursor = cls.get_cursor()
+    query = '''
+            SELECT EMPID, FIRST_NAME, LAST_NAME, EMP_ROLE, DPTID, EMAIL_ADDRESS
+            FROM employee_table
+            WHERE EMP_ROLE IN ('manager', 'project_manager') 
+            AND EMP_ACTIVE = 1
+            ORDER BY EMP_ROLE, LAST_NAME, FIRST_NAME
+        '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    cursor.close()
+    return result
+
+
+@classmethod
+def promote_employee_to_manager(cls, empid, manager_type='manager', assignment_date=None):
+    """
+    Promote an employee to a manager role with validation.
+
+    Args:
+        empid (str): Employee ID to promote
+        manager_type (str): Type of manager ('manager' or 'project_manager')
+        assignment_date (datetime.date, optional): Date of promotion
+
+    Returns:
+        bool: True if promotion was successful
+
+    Raises:
+        Exception: If employee doesn't exist, invalid manager type, or employee is inactive
+    """
+    cursor = cls.get_cursor()
+
+    try:
+        # Validate manager type
+        if manager_type not in ['manager', 'project_manager']:
+            raise Exception(f"Invalid manager type '{manager_type}'. Use 'manager' or 'project_manager'")
+
+        # Verify employee exists and is active
+        cursor.execute("SELECT EMPID, EMP_ROLE, EMP_ACTIVE FROM employee_table WHERE EMPID = ?", (empid,))
+        employee_result = cursor.fetchone()
+        if not employee_result:
+            raise Exception(f"Employee {empid} not found")
+
+        current_role, emp_active = employee_result[1], employee_result[2]
+
+        if not emp_active:
+            raise Exception(f"Cannot promote inactive employee {empid}")
+
+        if current_role in ['manager', 'project_manager']:
+            raise Exception(f"Employee {empid} is already in a management role ({current_role})")
+
+        # Use the update_employee_role method to handle the promotion
+        return cls.update_employee_role(empid, manager_type, assignment_date)
+
+    except Exception as e:
+        raise e
+    finally:
+        cursor.close()
+
+
+@classmethod
+def demote_manager_to_individual(cls, empid, assignment_date=None):
+    """
+    Demote a manager back to individual contributor role.
+
+    Args:
+        empid (str): Employee ID to demote
+        assignment_date (datetime.date, optional): Date of demotion
+
+    Returns:
+        bool: True if demotion was successful
+
+    Raises:
+        Exception: If employee doesn't exist or is not currently a manager
+    """
+    cursor = cls.get_cursor()
+
+    try:
+        # Verify employee exists and is currently a manager
+        cursor.execute("SELECT EMPID, EMP_ROLE FROM employee_table WHERE EMPID = ?", (empid,))
+        employee_result = cursor.fetchone()
+        if not employee_result:
+            raise Exception(f"Employee {empid} not found")
+
+        current_role = employee_result[1]
+
+        if current_role not in ['manager', 'project_manager']:
+            raise Exception(f"Employee {empid} is not currently in a management role (current: {current_role})")
+
+        # Use the update_employee_role method to handle the demotion
+        return cls.update_employee_role(empid, 'individual', assignment_date)
+
+    except Exception as e:
+        raise e
+    finally:
+        cursor.close()
+
+
+@classmethod
+def get_org_chart_by_role(cls):
+    """
+    Get organizational structure organized by roles for reporting.
+
+    Returns:
+        dict: Dictionary with roles as keys and employee lists as values
+    """
+    cursor = cls.get_cursor()
+    query = '''
+            SELECT 
+                e.EMP_ROLE,
+                e.EMPID, 
+                CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as FULL_NAME,
+                e.DPTID,
+                d.DPT_NAME,
+                e.EMAIL_ADDRESS,
+                e.EMP_ACTIVE
+            FROM employee_table e
+            INNER JOIN department d ON e.DPTID = d.DPTID
+            WHERE e.EMP_ACTIVE = 1
+            ORDER BY e.EMP_ROLE, d.DPT_NAME, e.LAST_NAME, e.FIRST_NAME
+        '''
+    cursor.execute(query)
+    results = cursor.fetchall()
+    cursor.close()
+
+    # Organize by role
+    org_chart = {}
+    for row in results:
+        role = row[0]
+        if role not in org_chart:
+            org_chart[role] = []
+
+        org_chart[role].append({
+            'empid': row[1],
+            'name': row[2],
+            'dept_id': row[3],
+            'dept_name': row[4],
+            'email': row[5],
+            'active': row[6]
+        })
+
+    return org_chart
+
+
+@classmethod
+def validate_role_consistency(cls):
+    """
+    Validate that role assignments are consistent across the system.
+
+    Returns:
+        dict: Dictionary containing validation results and any issues found
+    """
+    cursor = cls.get_cursor()
+
+    try:
+        # Check for employees with roles but no role history
+        cursor.execute('''
+                SELECT e.EMPID, e.EMP_ROLE
+                FROM employee_table e
+                LEFT JOIN employee_role_history erh ON e.EMPID = erh.EMPID AND e.EMP_ROLE = erh.EMP_ROLE
+                WHERE erh.EMPID IS NULL
+            ''')
+        missing_history = cursor.fetchall()
+
+        # Check for invalid role values
+        cursor.execute('''
+                SELECT EMPID, EMP_ROLE
+                FROM employee_table
+                WHERE EMP_ROLE NOT IN ('individual', 'manager', 'project_manager', 'user')
+            ''')
+        invalid_roles = cursor.fetchall()
+
+        # Get role distribution
+        cursor.execute('''
+                SELECT EMP_ROLE, COUNT(*) as count
+                FROM employee_table
+                WHERE EMP_ACTIVE = 1
+                GROUP BY EMP_ROLE
+                ORDER BY count DESC
+            ''')
+        role_distribution = cursor.fetchall()
+
+        return {
+            'missing_history': missing_history,
+            'invalid_roles': invalid_roles,
+            'role_distribution': role_distribution,
+            'validation_passed': len(missing_history) == 0 and len(invalid_roles) == 0
+        }
+
+    finally:
+        cursor.close()
