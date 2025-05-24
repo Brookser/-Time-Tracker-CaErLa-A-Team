@@ -3,17 +3,16 @@
 {% block header %}Summary for {{ session['first_name'] }} - Today{% endblock %}
 
 {% block content %}
-
+<div class="section-header">
+    <h2 class="tab-heading">Today's Summary</h2>
+</div>
 <div class="report-card">
-    <h2>Time Spent per Project</h2>
+    <h3>Time Spent per Project</h3>
     <ul class="summary-list">
         {% for project, total in project_summary.items() %}
             <li><strong>{{ project }}</strong>: {{ total|format_minutes }} </li>
         {% endfor %}
     </ul>
-</div>
-
-<div class="report-card">
     <h3>Detailed Entries</h3>
     {% if entries %}
         <table>

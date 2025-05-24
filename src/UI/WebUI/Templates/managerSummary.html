@@ -3,12 +3,15 @@
 {% block header %}Today's Summary - {{ today }}{% endblock %}
 
 {% block content %}
+<div class="section-header">
+    <h2 class="tab-heading">{{ today }}</h2>
+</div>
 
 <div class="report-card">
-    <h2>Time Logged by Team</h2>
+    <h3>Time Logged by Team</h3>
 
     {% if summary %}
-        <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+        <div class="team-summary-grid" style="display: flex; flex-wrap: wrap; gap: 16px;">
             {% for emp_name, projects in summary.items() %}
                 <div style="flex: 1 1 300px; background: #f9f9f9; border-radius: 8px; padding: 12px 16px; box-shadow: 1px 2px 6px rgba(0,0,0,0.13);">
                     <h4 style="margin-top: 0; margin-bottom: 6px; color: #0f3b96;">👤 {{ emp_name }}</h4>
