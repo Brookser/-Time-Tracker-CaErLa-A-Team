@@ -1,3 +1,4 @@
+from random import random
 import pytz
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from functools import wraps
@@ -453,7 +454,7 @@ def create_project():
         if not name:
             return "❌ Project name is required."
 
-        projectid = f"P_{uuid4().hex[:8]}"
+        projectid = f"P{random.randint(10001, 99999)}"
         new_project = Project(
             projectid=projectid,
             name=name,
@@ -590,13 +591,14 @@ def my_projects():
 @login_required
 def manage_projects():
     empid = session.get("empid")
-    all_projects = Database.get_all_projects()
+    # all_projects = Database.get_all_projects()
+    active_projects = Database.get_active_projects()
     project_membership = Database.get_project_ids_for_employee(empid)
 
     personal = []
     team = []
 
-    for pid, name in all_projects:
+    for pid, name in active_projects:
         creator = Database.get_project_created_by(pid)
         members = Database.get_employees_assigned_to_project(pid)
 
@@ -696,6 +698,30 @@ def edit_project_view(projectid):
 
     project_name = next((name for pid, name in Database.get_all_projects() if pid == projectid), "Unknown Project")
     return render_template("editProject.html", projectid=projectid, current_name=project_name)
+
+@app.route("/edit-project-name/<projectid>", methods=["POST"])
+@login_required
+def edit_project_name(projectid):
+    new_name = request.form.get("new_name")
+    empid = session.get("empid")
+
+    # Double-check ownership before allowing rename
+    if empid != Database.get_project_created_by(projectid):
+        flash("You do not have permission to edit this project.", "error")
+        return redirect(url_for("project_detail", projectid=projectid))
+
+    result = Database.change_project_name(
+        current_projectid=projectid,
+        new_project_name=new_name,
+        created_by=empid
+    )
+
+    if result.get("success"):
+        flash("Project name updated!", "success")
+        return redirect(url_for("project_detail", projectid=result["new_projectid"]))
+    else:
+        flash("Failed to update project name.", "error")
+        return redirect(url_for("edit_project_view", projectid=projectid))
 
 
 @app.route("/log-time", methods=["GET", "POST"])

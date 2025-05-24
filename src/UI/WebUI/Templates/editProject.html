@@ -1,0 +1,15 @@
+{% extends "default.html" %}
+{% block title %}Edit Project{% endblock %}
+{% block header %}Edit Project{% endblock %}
+
+{% block content %}
+<div class="report-card">
+    <form action="{{ url_for('edit_project_name', projectid=projectid) }}" method="post">
+        <label for="new_name">New Project Name:</label>
+        <input type="text" id="new_name" name="new_name" value="{{ current_name }}" required>
+        <br><br>
+        <button type="submit" class="button">Save Changes</button>
+        <a href="{{ url_for('project_detail', projectid=projectid) }}"><button type="button">Cancel</button></a>
+    </form>
+</div>
+{% endblock %}
