@@ -17,7 +17,9 @@
 # !/usr/bin/env python3
 """
 Script to query all time entries between 05/20/2025 and 06/02/2025.
-Returns results in a clean grid/table format sorted from oldest to newest.
+Returns results in
+    • a clean grid/table format sorted by employee from oldest to newest, and
+    • a clean grid/table format sorted from oldest to newest
 """
 
 from src.Data.Database import Database
@@ -111,7 +113,7 @@ def create_table_separator(widths):
 
 def display_time_entries_table(time_entries, start_date, end_date):
     """
-    Display time entries in a clean table format.
+    Display time entries in a clean table format sorted by EMPID then start time.
 
     Args:
         time_entries (list): List of time entry tuples
@@ -143,6 +145,63 @@ def display_time_entries_table(time_entries, start_date, end_date):
 
     # Print each row
     for entry in time_entries:
+        (timeid, empid, employee_name, projectid, project_name,
+         start_time, stop_time, total_minutes, notes, manual_entry, flagged) = entry
+
+        # Format data for display
+        start_date_str = start_time.strftime('%m/%d/%Y') if start_time else ""
+        start_time_str = start_time.strftime('%H:%M') if start_time else ""
+        duration_str = f"{total_minutes}m" if total_minutes else "0m"
+        notes_str = notes.replace('\n', ' ').replace('\r', ' ') if notes else ""
+        entry_type = "Manual" if manual_entry == 1 else "Timer"
+
+        row_data = [
+            timeid, empid, employee_name, projectid, project_name,
+            start_date_str, start_time_str, duration_str, notes_str, entry_type
+        ]
+
+        print(format_table_row(row_data, widths))
+
+    print(separator)
+
+
+def display_time_entries_chronological_table(time_entries, start_date, end_date):
+    """
+    Display time entries in chronological order (sorted by start time only).
+
+    Args:
+        time_entries (list): List of time entry tuples
+        start_date (str): Start date for the query
+        end_date (str): End date for the query
+    """
+    if not time_entries:
+        print(f"No time entries found between {start_date} and {end_date}.")
+        return
+
+    # Sort entries chronologically by start time
+    chronological_entries = sorted(time_entries, key=lambda x: x[5])  # x[5] is START_TIME
+
+    print(f"\nTIME ENTRIES: {start_date} to {end_date} (CHRONOLOGICAL ORDER)")
+    print(f"Total entries: {len(chronological_entries)} | Sorted: Oldest to Newest (All Employees)")
+    print("=" * 120)
+
+    # Define column headers and widths
+    headers = [
+        "Time ID", "Emp ID", "Employee Name", "Project ID", "Project Name",
+        "Start Date", "Start Time", "Duration", "Notes", "Type"
+    ]
+
+    # Column widths (adjust as needed)
+    widths = [12, 8, 16, 10, 20, 10, 8, 8, 25, 6]
+
+    # Print table header
+    separator = create_table_separator(widths)
+    print(separator)
+    print(format_table_row(headers, widths))
+    print(separator)
+
+    # Print each row
+    for entry in chronological_entries:
         (timeid, empid, employee_name, projectid, project_name,
          start_time, stop_time, total_minutes, notes, manual_entry, flagged) = entry
 
@@ -271,9 +330,9 @@ def display_employee_breakdown(time_entries):
     print(format_table_row(emp_headers, emp_widths))
     print(emp_separator)
 
-    # Sort by total hours (descending)
+    # Sort by EMPID and then by total hours (descending) for consistent display
     sorted_employees = sorted(employee_stats.items(),
-                              key=lambda x: x[1]['minutes'], reverse=True)
+                              key=lambda x: (x[0], -x[1]['minutes']))
 
     for empid, stats in sorted_employees:
         hours = stats['minutes'] / 60.0
@@ -372,6 +431,7 @@ def export_table_to_file(time_entries, start_date, end_date, filename=None):
 
         # Generate all the tables
         display_time_entries_table(time_entries, start_date, end_date)
+        display_time_entries_chronological_table(time_entries, start_date, end_date)
         display_summary_table(time_entries)
         display_employee_breakdown(time_entries)
         display_project_breakdown(time_entries)
@@ -399,6 +459,7 @@ def main():
     end_date = "2025-06-02"
 
     print(f"Querying time entries from {start_date} to {end_date}...")
+    print("Results will be sorted by Employee ID, then by start time (oldest to newest)")
 
     # Execute the query
     time_entries = get_time_entries_date_range(start_date, end_date)
@@ -407,8 +468,11 @@ def main():
         print(f"\nNo time entries found between {start_date} and {end_date}.")
         return
 
-    # Display main table
+    # Display main table (sorted by EMPID, then start time)
     display_time_entries_table(time_entries, start_date, end_date)
+
+    # Display chronological table (sorted by start time only)
+    display_time_entries_chronological_table(time_entries, start_date, end_date)
 
     # Display summary tables
     display_summary_table(time_entries)
@@ -440,6 +504,7 @@ def custom_date_query():
 
         if time_entries:
             display_time_entries_table(time_entries, start_date, end_date)
+            display_time_entries_chronological_table(time_entries, start_date, end_date)
             display_summary_table(time_entries)
             display_employee_breakdown(time_entries)
             display_project_breakdown(time_entries)
