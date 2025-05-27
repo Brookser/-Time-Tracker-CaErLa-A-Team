@@ -1,0 +1,14 @@
+[
+  {"DPTID": "D001", "DPT_NAME": "General", "MANAGERID": null, "DPT_ACTIVE": 1},
+  {"DPTID": "D002", "DPT_NAME": "Sales", "MANAGERID": "E9003", "DPT_ACTIVE": 1},
+  {"DPTID": "D003", "DPT_NAME": "Popcorn Making", "MANAGERID": "E9006", "DPT_ACTIVE": 1},
+  {"DPTID": "DEV", "DPT_NAME": "BusinessDevelopment", "MANAGERID": "E9025", "DPT_ACTIVE": 1},
+  {"DPTID": "ENG", "DPT_NAME": "Engineering", "MANAGERID": "E003", "DPT_ACTIVE": 1},
+  {"DPTID": "FIN", "DPT_NAME": "Finance", "MANAGERID": "TEST01", "DPT_ACTIVE": 1},
+  {"DPTID": "HR", "DPT_NAME": "HumanResources", "MANAGERID": "E001", "DPT_ACTIVE": 1},
+  {"DPTID": "LEG", "DPT_NAME": "Legal", "MANAGERID": "E9005", "DPT_ACTIVE": 1},
+  {"DPTID": "MKT", "DPT_NAME": "Marketing", "MANAGERID": null, "DPT_ACTIVE": 1},
+  {"DPTID": "R&D", "DPT_NAME": "ResearchandDevelopment", "MANAGERID": "E9025", "DPT_ACTIVE": 1},
+  {"DPTID": "SUP", "DPT_NAME": "Support", "MANAGERID": "E9014", "DPT_ACTIVE": 1},
+  {"DPTID": "SVCS", "DPT_NAME": "Services", "MANAGERID": "E9007", "DPT_ACTIVE": 1}
+]
