@@ -1316,6 +1316,501 @@ class Database:
     # end of 5.12.2025 update - EAB
     # ****************************
 
+    @classmethod
+    def get_time_entry_notes(cls, timeid):
+        """
+        Get the notes for a specific time entry.
+
+        Args:
+            timeid (str): Time entry ID to get notes for
+
+        Returns:
+            str: Notes text, or None if time entry doesn't exist
+        """
+        cursor = cls.get_cursor()
+        query = "SELECT NOTES FROM time WHERE TIMEID = ?"
+        cursor.execute(query, (timeid,))
+        result = cursor.fetchone()
+        cursor.close()
+        return result[0] if result else None
+
+    @classmethod
+    def get_all_time_entry_notes(cls, empid=None, projectid=None):
+        """
+        Get notes for multiple time entries with optional filtering.
+
+        Args:
+            empid (str, optional): Filter by employee ID
+            projectid (str, optional): Filter by project ID
+
+        Returns:
+            list: List of tuples containing (TIMEID, EMPID, PROJECTID, START_TIME, NOTES)
+        """
+        cursor = cls.get_cursor()
+
+        base_query = """
+               SELECT TIMEID, EMPID, PROJECTID, START_TIME, NOTES 
+               FROM time 
+               WHERE NOTES IS NOT NULL AND NOTES != ''
+           """
+        params = []
+
+        if empid:
+            base_query += " AND EMPID = ?"
+            params.append(empid)
+
+        if projectid:
+            base_query += " AND PROJECTID = ?"
+            params.append(projectid)
+
+        base_query += " ORDER BY START_TIME DESC"
+
+        cursor.execute(base_query, params)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    @classmethod
+    def get_all_time_entry_notes(cls, empid=None, projectid=None):
+        """
+        Get notes for multiple time entries with optional filtering.
+
+        Args:
+            empid (str, optional): Filter by employee ID
+            projectid (str, optional): Filter by project ID
+
+        Returns:
+            list: List of tuples containing (TIMEID, EMPID, PROJECTID, START_TIME, NOTES)
+        """
+        cursor = cls.get_cursor()
+
+        base_query = """
+               SELECT TIMEID, EMPID, PROJECTID, START_TIME, NOTES 
+               FROM time 
+               WHERE NOTES IS NOT NULL AND NOTES != ''
+           """
+        params = []
+
+        if empid:
+            base_query += " AND EMPID = ?"
+            params.append(empid)
+
+        if projectid:
+            base_query += " AND PROJECTID = ?"
+            params.append(projectid)
+
+        base_query += " ORDER BY START_TIME DESC"
+
+        cursor.execute(base_query, params)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    @classmethod
+    def get_flagged_time_entries(cls, empid=None, include_employee_details=False):
+        """
+        Get all time entries that are flagged for review.
+
+        Args:
+            empid (str, optional): Filter by specific employee ID
+            include_employee_details (bool): Whether to include employee name and department info
+
+        Returns:
+            list: List of tuples containing time entry information
+        """
+        cursor = cls.get_cursor()
+
+        if include_employee_details:
+            query = """
+                    SELECT 
+                        t.TIMEID, 
+                        t.EMPID, 
+                        CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as EMPLOYEE_NAME,
+                        e.DPTID,
+                        t.PROJECTID, 
+                        t.START_TIME, 
+                        t.STOP_TIME, 
+                        t.TOTAL_MINUTES,
+                        t.NOTES, 
+                        t.MANUAL_ENTRY,
+                        t.FLAGGED_FOR_REVIEW
+                    FROM time t
+                    INNER JOIN employee_table e ON t.EMPID = e.EMPID
+                    WHERE t.FLAGGED_FOR_REVIEW = 1
+                """
+        else:
+            query = """
+                    SELECT TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, 
+                           TOTAL_MINUTES, NOTES, MANUAL_ENTRY, FLAGGED_FOR_REVIEW
+                    FROM time 
+                    WHERE FLAGGED_FOR_REVIEW = 1
+                """
+
+        if empid:
+            query += " AND t.EMPID = ?" if include_employee_details else " AND EMPID = ?"
+
+        query += " ORDER BY START_TIME DESC"
+
+        cursor.execute(query, (empid,) if empid else ())
+        result = cursor.fetchall()
+        cursor.close()
+
+    @classmethod
+    def get_flagged_entries_by_manager(cls, manager_empid):
+        """
+        Get all flagged time entries for employees managed by a specific manager.
+
+        Args:
+            manager_empid (str): Manager's employee ID
+
+        Returns:
+            list: List of tuples containing flagged entries for managed employees
+        """
+        cursor = cls.get_cursor()
+        query = """
+               SELECT 
+                   t.TIMEID, 
+                   t.EMPID, 
+                   CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as EMPLOYEE_NAME,
+                   e.DPTID,
+                   t.PROJECTID, 
+                   t.START_TIME, 
+                   t.STOP_TIME, 
+                   t.TOTAL_MINUTES,
+                   t.NOTES, 
+                   t.FLAGGED_FOR_REVIEW
+               FROM time t
+               INNER JOIN employee_table e ON t.EMPID = e.EMPID
+               WHERE t.FLAGGED_FOR_REVIEW = 1 
+               AND e.MGR_EMPID = ?
+               ORDER BY t.START_TIME DESC
+           """
+        cursor.execute(query, (manager_empid,))
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    @classmethod
+    def flag_time_entry_for_review(cls, timeid):
+        """
+        Flag a time entry for manager review.
+
+        Args:
+            timeid (str): Time entry ID to flag
+
+        Returns:
+            bool: True if successful, False if time entry doesn't exist
+
+        Raises:
+            Exception: If database error occurs
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            # Check if time entry exists
+            cursor.execute("SELECT TIMEID FROM time WHERE TIMEID = ?", (timeid,))
+            if not cursor.fetchone():
+                return False
+
+            # Flag the entry for review
+            cursor.execute("UPDATE time SET FLAGGED_FOR_REVIEW = 1 WHERE TIMEID = ?", (timeid,))
+            cls.commit()
+            return True
+
+        except Exception as e:
+            cls.__connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+
+    @classmethod
+    def unflag_time_entry(cls, timeid):
+        """
+        Remove review flag from a time entry (mark as reviewed/approved).
+
+        Args:
+            timeid (str): Time entry ID to unflag
+
+        Returns:
+            bool: True if successful, False if time entry doesn't exist
+
+        Raises:
+            Exception: If database error occurs
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            # Check if time entry exists
+            cursor.execute("SELECT TIMEID FROM time WHERE TIMEID = ?", (timeid,))
+            if not cursor.fetchone():
+                return False
+
+            # Remove the review flag
+            cursor.execute("UPDATE time SET FLAGGED_FOR_REVIEW = 0 WHERE TIMEID = ?", (timeid,))
+            cls.commit()
+            return True
+
+        except Exception as e:
+            cls.__connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+
+    @classmethod
+    def toggle_review_flag(cls, timeid):
+        """
+        Toggle the review flag status of a time entry.
+
+        Args:
+            timeid (str): Time entry ID to toggle
+
+        Returns:
+            bool: New flag status (True if now flagged, False if now unflagged), or None if entry doesn't exist
+
+        Raises:
+            Exception: If database error occurs
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            # Get current flag status
+            cursor.execute("SELECT FLAGGED_FOR_REVIEW FROM time WHERE TIMEID = ?", (timeid,))
+            result = cursor.fetchone()
+
+            if not result:
+                return None
+
+            current_flag = result[0]
+            new_flag = 0 if current_flag else 1
+
+            # Update the flag
+            cursor.execute("UPDATE time SET FLAGGED_FOR_REVIEW = ? WHERE TIMEID = ?", (new_flag, timeid))
+            cls.commit()
+            return bool(new_flag)
+
+        except Exception as e:
+            cls.__connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+
+    @classmethod
+    def bulk_unflag_time_entries(cls, timeid_list):
+        """
+        Remove review flags from multiple time entries at once.
+
+        Args:
+            timeid_list (list): List of time entry IDs to unflag
+
+        Returns:
+            int: Number of entries successfully unflagged
+
+        Raises:
+            Exception: If database error occurs
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            if not timeid_list:
+                return 0
+
+            # Create placeholders for the IN clause
+            placeholders = ','.join(['?' for _ in timeid_list])
+            query = f"UPDATE time SET FLAGGED_FOR_REVIEW = 0 WHERE TIMEID IN ({placeholders})"
+
+            cursor.execute(query, timeid_list)
+            affected_rows = cursor.rowcount
+            cls.commit()
+            return affected_rows
+
+        except Exception as e:
+            cls.__connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+
+    @classmethod
+    def get_flagged_entries_summary(cls):
+        """
+        Get a summary of flagged time entries by employee and department.
+
+        Returns:
+            dict: Dictionary containing summary statistics
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            # Get total flagged entries
+            cursor.execute("SELECT COUNT(*) FROM time WHERE FLAGGED_FOR_REVIEW = 1")
+            total_flagged = cursor.fetchone()[0]
+
+            # Get flagged entries by employee
+            cursor.execute("""
+                   SELECT 
+                       e.EMPID, 
+                       CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as EMPLOYEE_NAME,
+                       e.DPTID,
+                       COUNT(*) as FLAGGED_COUNT
+                   FROM time t
+                   INNER JOIN employee_table e ON t.EMPID = e.EMPID
+                   WHERE t.FLAGGED_FOR_REVIEW = 1
+                   GROUP BY e.EMPID, e.FIRST_NAME, e.LAST_NAME, e.DPTID
+                   ORDER BY FLAGGED_COUNT DESC
+               """)
+            by_employee = cursor.fetchall()
+
+            # Get flagged entries by department
+            cursor.execute("""
+                   SELECT 
+                       e.DPTID,
+                       d.DPT_NAME,
+                       COUNT(*) as FLAGGED_COUNT
+                   FROM time t
+                   INNER JOIN employee_table e ON t.EMPID = e.EMPID
+                   INNER JOIN department d ON e.DPTID = d.DPTID
+                   WHERE t.FLAGGED_FOR_REVIEW = 1
+                   GROUP BY e.DPTID, d.DPT_NAME
+                   ORDER BY FLAGGED_COUNT DESC
+               """)
+            by_department = cursor.fetchall()
+
+            # Get flagged entries by project
+            cursor.execute("""
+                   SELECT 
+                       t.PROJECTID,
+                       p.PROJECT_NAME,
+                       COUNT(*) as FLAGGED_COUNT
+                   FROM time t
+                   INNER JOIN projects p ON t.PROJECTID = p.PROJECTID
+                   WHERE t.FLAGGED_FOR_REVIEW = 1
+                   GROUP BY t.PROJECTID, p.PROJECT_NAME
+                   ORDER BY FLAGGED_COUNT DESC
+               """)
+            by_project = cursor.fetchall()
+
+            return {
+                'total_flagged': total_flagged,
+                'by_employee': by_employee,
+                'by_department': by_department,
+                'by_project': by_project
+            }
+
+        finally:
+            cursor.close()
+
+    @classmethod
+    def get_time_entries_needing_attention(cls, manager_empid=None, days_back=30):
+        """
+        Get time entries that might need attention (flagged, missing notes on long entries, etc.).
+
+        Args:
+            manager_empid (str, optional): Filter to employees managed by this manager
+            days_back (int): How many days back to look (default 30)
+
+        Returns:
+            dict: Dictionary with different categories of entries needing attention
+        """
+        cursor = cls.get_cursor()
+
+        try:
+            base_where = f"WHERE t.START_TIME >= DATE_SUB(NOW(), INTERVAL {days_back} DAY)"
+
+            if manager_empid:
+                base_where += " AND e.MGR_EMPID = ?"
+                params = (manager_empid,)
+            else:
+                params = ()
+
+            # Get flagged entries
+            flagged_query = f"""
+                   SELECT t.TIMEID, t.EMPID, CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as NAME,
+                          t.PROJECTID, t.START_TIME, t.TOTAL_MINUTES, 'Flagged for Review' as REASON
+                   FROM time t
+                   INNER JOIN employee_table e ON t.EMPID = e.EMPID
+                   {base_where} AND t.FLAGGED_FOR_REVIEW = 1
+                   ORDER BY t.START_TIME DESC
+               """
+            cursor.execute(flagged_query, params)
+            flagged_entries = cursor.fetchall()
+
+            # Get long entries without notes
+            long_no_notes_query = f"""
+                   SELECT t.TIMEID, t.EMPID, CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as NAME,
+                          t.PROJECTID, t.START_TIME, t.TOTAL_MINUTES, 'Long entry without notes' as REASON
+                   FROM time t
+                   INNER JOIN employee_table e ON t.EMPID = e.EMPID
+                   {base_where} AND t.TOTAL_MINUTES > 480 
+                   AND (t.NOTES IS NULL OR t.NOTES = '')
+                   ORDER BY t.TOTAL_MINUTES DESC
+               """
+            cursor.execute(long_no_notes_query, params)
+            long_no_notes = cursor.fetchall()
+
+            # Get unusual hours (very early/late entries)
+            unusual_hours_query = f"""
+                   SELECT t.TIMEID, t.EMPID, CONCAT(e.FIRST_NAME, ' ', e.LAST_NAME) as NAME,
+                          t.PROJECTID, t.START_TIME, t.TOTAL_MINUTES, 'Unusual hours' as REASON
+                   FROM time t
+                   INNER JOIN employee_table e ON t.EMPID = e.EMPID
+                   {base_where} AND (
+                       HOUR(t.START_TIME) < 6 OR HOUR(t.START_TIME) > 22 OR
+                       HOUR(t.STOP_TIME) < 6 OR HOUR(t.STOP_TIME) > 22
+                   )
+                   ORDER BY t.START_TIME DESC
+               """
+            cursor.execute(unusual_hours_query, params)
+            unusual_hours = cursor.fetchall()
+
+            return {
+                'flagged_entries': flagged_entries,
+                'long_entries_no_notes': long_no_notes,
+                'unusual_hours': unusual_hours,
+                'total_needing_attention': len(flagged_entries) + len(long_no_notes) + len(unusual_hours)
+            }
+
+        finally:
+            cursor.close()
+
+    @classmethod
+    def add_time_entry_with_timeid(cls, timeid, empid, projectid, start_time, stop_time, notes=None, manual_entry=0):
+        """
+        Add a time entry with a specific TIMEID - designed for bulk import operations.
+
+        Args:
+            timeid (str): Unique time entry ID
+            empid (str): Employee ID
+            projectid (str): Project ID
+            start_time (datetime): Start datetime
+            stop_time (datetime): Stop datetime
+            notes (str, optional): Notes for the time entry
+            manual_entry (int): Manual entry flag (0 for timer, 1 for manual)
+
+        Returns:
+            bool: True if successful, False if failed
+
+        Raises:
+            Exception: If there was a database error during insertion
+        """
+        try:
+            cursor = cls.get_cursor()
+
+            # Validate that stop_time is after start_time
+            if stop_time <= start_time:
+                raise ValueError("Stop time must be after start time")
+
+            cursor.execute('''
+                INSERT INTO time (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (timeid, empid, projectid, start_time, stop_time, notes, manual_entry))
+
+            cls.commit()
+            return True
+
+        except Exception as e:
+            print(f"Error inserting time entry {timeid}: {e}")
+            cls.__connection.rollback() if hasattr(cls, '_Database__connection') and cls.__connection else None
+            raise
+
 # ======================
 # 🔹 EmployeeProject Queries
 # ======================

@@ -10,6 +10,8 @@
 # Sources:
 #
 # Change Log:       - 5.11.2025: Initial setup
+#                   - 5.26.2025: Refactored script for better error handling and
+#                       cleaner output
 
 # A comprehensive script that will manage backup files by keeping only the most recent ones.
 #
@@ -45,38 +47,14 @@
 #     Error Handling:
 #
 #         • Gracefully handles missing files or permissions issues
-#         • Reports any errors that occur during deletion
-#
-#
-#
-#     Usage
-#         ***BASH COMMANDS Basic usage (keeps 3 most recent backups)***
-#             python CleanUpBackups.py
-#
-#         ***Keep a different number of backups***
-#             python CleanUpBackups.py --keep 5
-#
-#         ***Preview what would be deleted without actually deleting***
-#             python CleanUpBackups.py --dry-run
-#
-#         ***Skip confirmation prompt (useful for automated cleanup)***
-#             python CleanUpBackups.py --yes
-#
-#     Example Output
-#         The script provides clear, color-coded output like this:
-#             • Green ✓ for files being kept
-#             • Red ✗ for files being deleted
-#             • Detailed information about each file (date modified, size)
-#             • Summary of total space freed
-#
-#     This script complements the backup workflow by preventing the accumulation of unnecessary backup files and ensuring
-#       there is always a recent backup available in case of emergency.
+#         • Reports errors that occur during deletion
+
+
 #
 # **********************************************************************************************************************
 # **********************************************************************************************************************  
 
-# !/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 CleanUpBackups.py
 
@@ -93,6 +71,8 @@ import sys
 import glob
 import shutil
 import argparse
+import stat
+import subprocess
 from datetime import datetime
 
 
@@ -152,12 +132,136 @@ def get_directory_size(path):
     Calculate the total size of a directory
     """
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(path):
-        for filename in filenames:
-            file_path = os.path.join(dirpath, filename)
-            if not os.path.islink(file_path):
-                total_size += os.path.getsize(file_path)
+    try:
+        for dirpath, dirnames, filenames in os.walk(path):
+            for filename in filenames:
+                file_path = os.path.join(dirpath, filename)
+                if not os.path.islink(file_path):
+                    total_size += os.path.getsize(file_path)
+    except (OSError, IOError):
+        # If we can't access some files, just return what we could calculate
+        pass
     return total_size
+
+
+def make_writable(path):
+    """
+    Make a file or directory writable by removing read-only attributes
+    """
+    try:
+        # Remove read-only attribute
+        os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+    except (OSError, IOError):
+        pass
+
+
+def remove_readonly_recursive(path):
+    """
+    Recursively remove read-only attributes from all files in a directory
+    """
+    try:
+        for root, dirs, files in os.walk(path):
+            # Make directories writable
+            for dir_name in dirs:
+                dir_path = os.path.join(root, dir_name)
+                make_writable(dir_path)
+
+            # Make files writable
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                make_writable(file_path)
+
+            # Make the current directory writable
+            make_writable(root)
+    except (OSError, IOError):
+        pass
+
+
+def delete_directory_windows(path):
+    """
+    Delete a directory on Windows using multiple methods
+    """
+    try:
+        # Method 1: Try shutil.rmtree with error handler
+        def handle_remove_readonly(func, path, exc):
+            """Error handler to remove read-only files"""
+            if os.path.exists(path):
+                make_writable(path)
+                func(path)
+
+        shutil.rmtree(path, onerror=handle_remove_readonly)
+
+        # Check if deletion was successful
+        if not os.path.exists(path):
+            return True, "Standard deletion successful"
+
+    except Exception as e:
+        pass
+
+    # Method 2: Remove read-only attributes first, then try shutil.rmtree
+    try:
+        remove_readonly_recursive(path)
+        shutil.rmtree(path)
+
+        if not os.path.exists(path):
+            return True, "Deletion after removing read-only attributes successful"
+
+    except Exception as e:
+        pass
+
+    # Method 3: Use Windows rd command
+    try:
+        # Use subprocess for better control
+        result = subprocess.run(['rd', '/S', '/Q', path],
+                                shell=True,
+                                capture_output=True,
+                                text=True)
+
+        if not os.path.exists(path):
+            return True, "Windows rd command successful"
+        else:
+            return False, f"Windows rd command failed: {result.stderr}"
+
+    except Exception as e:
+        return False, f"Windows rd command error: {e}"
+
+    return False, "All deletion methods failed"
+
+
+def delete_directory_unix(path):
+    """
+    Delete a directory on Unix-like systems
+    """
+    try:
+        # Try standard shutil.rmtree first
+        shutil.rmtree(path)
+        return True, "Standard deletion successful"
+    except Exception as e:
+        pass
+
+    # Try rm -rf as fallback
+    try:
+        result = subprocess.run(['rm', '-rf', path],
+                                capture_output=True,
+                                text=True)
+
+        if not os.path.exists(path):
+            return True, "rm -rf command successful"
+        else:
+            return False, f"rm -rf command failed: {result.stderr}"
+
+    except Exception as e:
+        return False, f"rm -rf command error: {e}"
+
+
+def delete_directory_safely(path):
+    """
+    Delete a directory using the appropriate method for the operating system
+    """
+    if os.name == 'nt':  # Windows
+        return delete_directory_windows(path)
+    else:  # Unix-like systems
+        return delete_directory_unix(path)
 
 
 def cleanup_backups(keep_count=3, dry_run=False, force=False):
@@ -207,9 +311,12 @@ def cleanup_backups(keep_count=3, dry_run=False, force=False):
 
                 if not dry_run:
                     try:
+                        # Remove read-only attribute if present
+                        make_writable(item)
                         os.remove(item)
+                        print(f"      {Colors.GREEN}Successfully deleted{Colors.END}")
                     except Exception as e:
-                        print(f"      {Colors.FAIL}Error: {e}{Colors.END}")
+                        print(f"      {Colors.FAIL}Error deleting file: {e}{Colors.END}")
 
             print(f"  Space freed from schema backups: {Colors.BOLD}{format_size(schema_space)}{Colors.END}")
             total_space_freed += schema_space
@@ -247,42 +354,12 @@ def cleanup_backups(keep_count=3, dry_run=False, force=False):
                 print(f"    {Colors.FAIL}✗ {action}: {item}{Colors.END} ({mtime_str}, {format_size(size)})")
 
                 if not dry_run:
-                    try:
-                        # For Windows: Make files writable before deletion
-                        if os.name == 'nt':  # Check if running on Windows
-                            for root, dirs, files in os.walk(item):
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    try:
-                                        # Make the file writable
-                                        os.chmod(file_path, 0o777)
-                                    except:
-                                        pass
-
-                        # Try to delete the directory
-                        shutil.rmtree(item)
-
-                    except Exception as e:
-                        print(f"      {Colors.FAIL}Error: {e}{Colors.END}")
-                        print(f"      {Colors.WARNING}Attempting alternative deletion method...{Colors.END}")
-
-                        # Alternative method for Windows: use system commands
-                        try:
-                            if os.name == 'nt':  # Windows
-                                # Use the Windows RD command with /S /Q for silent recursive delete
-                                os.system(f'rd /S /Q "{item}"')
-                            else:  # Unix-like
-                                # Use rm -rf for Unix-like systems
-                                os.system(f'rm -rf "{item}"')
-
-                            # Check if directory still exists
-                            if not os.path.exists(item):
-                                print(f"      {Colors.GREEN}Alternative deletion successful{Colors.END}")
-                            else:
-                                print(f"      {Colors.FAIL}Alternative deletion also failed{Colors.END}")
-                                print(f"      {Colors.WARNING}Try manually deleting: {item}{Colors.END}")
-                        except Exception as alt_e:
-                            print(f"      {Colors.FAIL}Alternative deletion error: {alt_e}{Colors.END}")
+                    success, message = delete_directory_safely(item)
+                    if success:
+                        print(f"      {Colors.GREEN}✓ {message}{Colors.END}")
+                    else:
+                        print(f"      {Colors.FAIL}✗ {message}{Colors.END}")
+                        print(f"      {Colors.WARNING}You may need to manually delete: {item}{Colors.END}")
 
             print(f"  Space freed from data backups: {Colors.BOLD}{format_size(data_space)}{Colors.END}")
             total_space_freed += data_space
