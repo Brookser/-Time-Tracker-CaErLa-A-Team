@@ -1,6 +1,6 @@
 import random
 import pytz
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, abort
 from functools import wraps
 from src.Logic.TimeEntry import TimeEntry
 from src.Data.Database import Database
@@ -172,6 +172,7 @@ def filter_report():
         entries = TimeEntry.get_entries_for_empids(filtered_ids, start, end)
         entries = normalize_minutes_column(entries, 7)
         employees = [emp for emp in TimeEntry.get_all_employees() if emp[0] in all_ids]
+        print(entries[0])
 
     else:  # future: customize for other roles like admin/project_manager
         entries = TimeEntry.get_time_entries_filtered(empid, start, end)
@@ -802,6 +803,26 @@ def stop_timer():
     session.pop("active_timer_id", None)
     return redirect("/my-time")
 
+# @app.route("/flag-time-entry", methods=["POST"])
+# @login_required
+# def flag_time_entry():
+#     if session.get("emp_role") not in ["Manager", "Admin"]:
+#         abort(403)
+#
+#     timeid = request.form.get("timeid")
+#     if timeid:
+#         Database.toggle_review_flag(timeid)
+#         flash("⛳ Time entry flagged for review.", "info")
+#
+#     return redirect(request.referrer or url_for("project_report"))
+
+@app.route("/toggle-flag", methods=["POST"])
+@login_required
+def toggle_flag():
+    timeid = request.form.get("timeid")
+    if timeid:
+        Database.toggle_review_flag(timeid)
+    return redirect(request.referrer or url_for("reporting"))
 
 @app.route("/logout")
 def logout():

@@ -52,7 +52,9 @@
                 <th>Start</th>
                 <th>Stop</th>
                 <th>Notes</th>
-                <th>Minutes</th>
+                <th>Time Spent</th>
+                <th>Flag</th>
+                <th>Flagged</th>
             </tr>
             {% for e in entries %}
             <tr>
@@ -62,6 +64,14 @@
                 <td class="local-timestamp" data-timestamp="{{ e[5].strftime('%Y-%m-%dT%H:%M:%SZ') if e[5] else '' }}">{{ '---' if not e[5] }}</td>
                 <td>{{ e[6] }}</td>
                 <td>{{ e[7]|format_minutes }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('toggle_flag') }}">
+                        <input type="hidden" name="timeid" value="{{ e[0] }}">
+                        <input type="checkbox" name="flag" onchange="this.form.submit()" {% if e[8] == 1 %}checked{% endif %}>
+                    </form>
+                </td>
+                <td>{{ e[8] }}</td>
+
             </tr>
             {% endfor %}
         </table>

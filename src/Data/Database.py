@@ -944,7 +944,7 @@ class Database:
         placeholders = ','.join('?' for _ in empids)
         query = f'''
             SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME, 
-                   t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES
+                   t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES, t.FLAGGED_FOR_REVIEW
             FROM time t
             JOIN employee_table e ON t.EMPID = e.EMPID
             JOIN projects p ON t.PROJECTID = p.PROJECTID
@@ -970,7 +970,7 @@ class Database:
 
         query = '''
             SELECT t.TIMEID, e.FIRST_NAME, e.LAST_NAME, p.PROJECT_NAME, 
-                   t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES
+                   t.START_TIME, t.STOP_TIME, t.NOTES, t.TOTAL_MINUTES, t.FLAGGED_FOR_REVIEW
             FROM time t
             JOIN employee_table e ON t.EMPID = e.EMPID
             JOIN projects p ON t.PROJECTID = p.PROJECTID
