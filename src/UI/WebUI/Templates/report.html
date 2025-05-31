@@ -54,7 +54,6 @@
                 <th>Notes</th>
                 <th>Time Spent</th>
                 <th>Flag</th>
-                <th>Flagged</th>
             </tr>
             {% for e in entries %}
             <tr>
@@ -67,10 +66,9 @@
                 <td>
                     <form method="post" action="{{ url_for('toggle_flag') }}">
                         <input type="hidden" name="timeid" value="{{ e[0] }}">
-                        <input type="checkbox" name="flag" onchange="this.form.submit()" {% if e[8] == 1 %}checked{% endif %}>
+                        <input type="checkbox" class="flag" name="flag" onchange="this.form.submit()" {% if e[8] == 1 %}checked{% endif %}>
                     </form>
                 </td>
-                <td>{{ e[8] }}</td>
 
             </tr>
             {% endfor %}

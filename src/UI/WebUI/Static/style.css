@@ -219,6 +219,32 @@ label.member-select {
     color: #2e2e2e;
 }
 
+input[type="checkbox"].flag {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Change background color when checked */
+input[type="checkbox"].flag:checked {
+    background-color: #9d3317; /* or any color you like */
+    border-color: #9d3317;
+}
+
+/* Optional: Add a checkmark */
+input[type="checkbox"].flag:checked::after {
+    content: "✓";
+    color: white;
+    font-size: 14px;
+    position: absolute;
+    top: -1px;
+    left: 6px;
+}
+
 /* end Project pages forms*/
 
 /* Project View tabs */
