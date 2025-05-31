@@ -732,31 +732,67 @@ def log_time():
     # Check if timer is already running
     active_timer = Database.get_active_timer_for_user(empid)
 
-    if request.method == "POST" and not active_timer:
-        project_id = request.form.get("project_id")
-        notes = request.form.get("notes", "")
-        timeid = f"t-{uuid.uuid4().hex[:8]}"
+    if request.method == "POST":
+        print("📬 POST received:", request.form)
 
-        Database.start_time_entry(
-            timeid=timeid,
-            empid=empid,
-            projectid=project_id,
-            start_time=datetime.now(),
-            notes=notes
-        )
+        if request.form.get("manual"):
+            print("📝 Manual entry form detected")
+            project_id = request.form.get("project_manual")
+            start_time = request.form.get("start_manual")
+            stop_time = request.form.get("stop_manual")
+            notes = request.form.get("notes_manual")
 
-        session["active_timer_id"] = timeid
-        flash("⏱️ Timer started!", "success")
-        resp = redirect(url_for("log_time"))
-        resp.set_cookie("active_timer_id", timeid, max_age=12 * 3600)  # expires in 12 hours
-        return resp
+            print("Raw start:", start_time)
+            print("Raw stop:", stop_time)
 
-    # Fetch user projects for dropdown
+            # start_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M")
+            # stop_dt = datetime.strptime(stop_time, "%Y-%m-%dT%H:%M")
+            pacific = pytz.timezone("America/Los_Angeles")
+            start_local = pacific.localize(datetime.strptime(start_time, "%Y-%m-%dT%H:%M"))
+            stop_local = pacific.localize(datetime.strptime(stop_time, "%Y-%m-%dT%H:%M"))
+
+            start_dt = start_local.astimezone(pytz.utc).replace(tzinfo=None)
+            stop_dt = stop_local.astimezone(pytz.utc).replace(tzinfo=None)
+
+            timeid = f"t-{uuid.uuid4().hex[:8]}"
+            manual_entry = TimeEntry(
+                empid=empid,
+                projectid=project_id,
+                start_time=start_dt,
+                stop_time=stop_dt,
+                notes=notes,
+                manual_entry=1,
+                timeid=timeid
+            )
+
+            # print("🧪 Saving manual entry to database")
+            manual_entry.save_to_database()
+            # flash("✅ Manual time entry added.", "success")
+            return redirect(url_for("my_time"))
+
+        # Regular timer entry
+        elif not active_timer:
+            project_id = request.form.get("project_id")
+            notes = request.form.get("notes", "")
+            timeid = f"t-{uuid.uuid4().hex[:8]}"
+
+            Database.start_time_entry(
+                timeid=timeid,
+                empid=empid,
+                projectid=project_id,
+                start_time=datetime.now(),
+                notes=notes
+            )
+
+            session["active_timer_id"] = timeid
+            flash("⏱️ Timer started!", "success")
+            resp = redirect(url_for("log_time"))
+            resp.set_cookie("active_timer_id", timeid, max_age=12 * 3600)
+            return resp
+
+    # GET method — fetch data for view
     projects = Project.get_projects_for_user(empid)
-    print("📦 Projects for user:", projects)
-
     return render_template("logTime.html", projects=projects, active_timer=active_timer)
-
 
 @app.route("/stop-timer", methods=["POST"])
 @login_required

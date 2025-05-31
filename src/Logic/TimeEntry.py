@@ -1,7 +1,9 @@
+import uuid
 from src.Data.Database import Database
 
 class TimeEntry:
-    def __init__(self, empid, projectid, start_time, stop_time=None, notes=None, manual_entry=0, total_minutes=None):
+    def __init__(self, empid, projectid, start_time, stop_time=None, notes=None, manual_entry=0, total_minutes=None, timeid=None):
+        self.__timeid = timeid or f"t-{uuid.uuid4().hex[:8]}"
         self.__empid = empid
         self.__projectid = projectid
         self.__start_time = start_time
@@ -54,6 +56,7 @@ class TimeEntry:
         print(dir(Database))
         self.calculate_total_minutes()
         Database.add_time_entry(
+            timeid=self.__timeid,
             empid=self.__empid,
             projectid=self.__projectid,
             start_time=self.__start_time,

@@ -37,4 +37,36 @@
     {% endif %}
 </div>
 
+<button type="button" onclick="toggleManualForm()">+ Add Manual Entry</button>
+
+<div id="manual-entry-form" style="display: none; margin-top: 1rem;">
+    <form method="POST" action="/log-time">
+        <label for="project_manual">Project:</label>
+        <select name="project_manual" required>
+            {% for pid, pname in projects %}
+                <option value="{{ pid }}">{{ pname }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="start_manual">Start Time:</label>
+        <input type="datetime-local" name="start_manual" required><br><br>
+
+        <label for="stop_manual">Stop Time:</label>
+        <input type="datetime-local" name="stop_manual" required><br><br>
+
+        <label for="notes_manual">Notes (optional):</label>
+        <textarea name="notes_manual" rows="2" cols="30"></textarea><br><br>
+
+        <input type="hidden" name="manual" value="true">
+        <button type="submit">Add Manual Entry</button>
+    </form>
+</div>
+
+<script>
+    function toggleManualForm() {
+        const form = document.getElementById("manual-entry-form");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+</script>
+
 {% endblock %}

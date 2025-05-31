@@ -748,13 +748,21 @@ class Database:
         return result
 
     @classmethod
-    def add_time_entry(cls, empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes):
+    def add_time_entry(cls,
+                       timeid,
+                       empid,
+                       projectid,
+                       start_time,
+                       stop_time,
+                       notes,
+                       manual_entry,
+                       total_minutes):
         cursor = cls.get_cursor()
         cursor.execute('''
             INSERT INTO time 
-            (EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY, TOTAL_MINUTES)
+            (TIMEID, EMPID, PROJECTID, START_TIME, STOP_TIME, NOTES, MANUAL_ENTRY)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (empid, projectid, start_time, stop_time, notes, manual_entry, total_minutes))
+        ''', (timeid, empid, projectid, start_time, stop_time, notes, manual_entry))
         cls.commit()
 
     # test consolidated project reporting page below

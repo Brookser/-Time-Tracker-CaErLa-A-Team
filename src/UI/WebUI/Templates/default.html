@@ -85,7 +85,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            document.getElementById("timezone-display").innerText = "Times shown in " + tz.replace("_", " ");
+            const tzEl = document.getElementById("timezone-display");
+            if (tzEl) {
+                tzEl.innerText = "Times shown in " + tz.replace("_", " ");
+            }
         });
     </script>
     <script>
